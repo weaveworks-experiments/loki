@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/scope/common/middleware"
+
+	"github.com/tomwilkie/loki/zipkin-ui"
 )
 
 var (
@@ -34,6 +37,17 @@ func main() {
 
 	noopHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
+	router.Handle("/config.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewEncoder(w).Encode(struct {
+			DefaultLookback int `json:"defaultLookback"`
+			QueryLimit      int `json:"queryLimit"`
+		}{
+			DefaultLookback: 3600000,
+			QueryLimit:      10,
+		}); err != nil {
+			log.Errorf("Error marshalling config: %v", err)
+		}
+	}))
 	router.Handle("/api/v1/dependencies", noopHandler)
 	router.Handle("/api/v1/services", noopHandler)
 	router.Handle("/api/v1/spans", noopHandler)
@@ -41,6 +55,7 @@ func main() {
 	router.Handle("/api/v1/traces", noopHandler)
 
 	router.Handle("/metrics", prometheus.Handler())
+	router.PathPrefix("/").Handler(ui.Handler)
 
 	instrumented := middleware.Merge(
 		middleware.Log{

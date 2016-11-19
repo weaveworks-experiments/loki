@@ -19,7 +19,7 @@ Instrument you go application according to OpenTracing
 ```go
 import (
     "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-    "github.com/tomwilkie/loki"
+    "github.com/tomwilkie/loki/client"
 )
 
 var tracer :=

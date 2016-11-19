@@ -25,8 +25,8 @@ images:
 	$(info $(IMAGE_NAMES))
 
 # List of exes please
-LOKI_EXE := ./cmd/loki/loki
-EXES = $(CORTEX_EXE)
+LOKI_EXE := cmd/loki/loki
+EXES = $(LOKI_EXE)
 
 all: $(UPTODATE_FILES)
 

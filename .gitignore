@@ -1,0 +1,4 @@
+.pkg
+.uptodate
+cmd/loki/loki
+zipkin-ui/bindata.go

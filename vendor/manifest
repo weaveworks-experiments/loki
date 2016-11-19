@@ -10,12 +10,29 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/Sirupsen/logrus",
+			"repository": "https://github.com/Sirupsen/logrus",
+			"vcs": "git",
+			"revision": "a437dfd2463eaedbec3dfe443e477d3b0a810b3f",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/apache/thrift/lib/go/thrift",
 			"repository": "https://github.com/apache/thrift",
 			"vcs": "git",
 			"revision": "2a89bd94ac4ba8c645cad1e0c01606fdac6dc30b",
 			"branch": "master",
 			"path": "/lib/go/thrift",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/beorn7/perks/quantile",
+			"repository": "https://github.com/beorn7/perks",
+			"vcs": "git",
+			"revision": "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9",
+			"branch": "master",
+			"path": "/quantile",
 			"notests": true
 		},
 		{
@@ -80,10 +97,44 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/golang/protobuf/proto",
+			"repository": "https://github.com/golang/protobuf",
+			"vcs": "git",
+			"revision": "8ee79997227bf9b34611aee7946ae64735e6fd93",
+			"branch": "master",
+			"path": "/proto",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/golang/protobuf/ptypes/any",
+			"repository": "https://github.com/golang/protobuf",
+			"vcs": "git",
+			"revision": "8ee79997227bf9b34611aee7946ae64735e6fd93",
+			"branch": "master",
+			"path": "ptypes/any",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/golang/snappy",
 			"repository": "https://github.com/golang/snappy",
 			"vcs": "git",
 			"revision": "d9eb7a3d35ec988b8585d4a0068e462c27d28380",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/gorilla/context",
+			"repository": "https://github.com/gorilla/context",
+			"vcs": "git",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/gorilla/mux",
+			"repository": "https://github.com/gorilla/mux",
+			"vcs": "git",
+			"revision": "757bef944d0f21880861c2dd9c871ca543023cba",
 			"branch": "master",
 			"notests": true
 		},
@@ -93,6 +144,15 @@
 			"vcs": "git",
 			"revision": "cb6bfca970f6908083f26f39a79009d608efd5cd",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"repository": "https://github.com/matttproud/golang_protobuf_extensions",
+			"vcs": "git",
+			"revision": "c12348ce28de40eed0136aa2b644d0ee0650e56c",
+			"branch": "master",
+			"path": "/pbutil",
 			"notests": true
 		},
 		{
@@ -112,6 +172,59 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/prometheus/client_golang/prometheus",
+			"repository": "https://github.com/prometheus/client_golang",
+			"vcs": "git",
+			"revision": "573acbcb7f88b0ceb1cd5a61e23985f8a4846536",
+			"branch": "master",
+			"path": "/prometheus",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/prometheus/client_model/go",
+			"repository": "https://github.com/prometheus/client_model",
+			"vcs": "git",
+			"revision": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6",
+			"branch": "master",
+			"path": "/go",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/prometheus/common/expfmt",
+			"repository": "https://github.com/prometheus/common",
+			"vcs": "git",
+			"revision": "0d5de9d6d8629cb8bee6d4674da4127cd8b615a3",
+			"branch": "master",
+			"path": "expfmt",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
+			"repository": "https://github.com/prometheus/common",
+			"vcs": "git",
+			"revision": "0d5de9d6d8629cb8bee6d4674da4127cd8b615a3",
+			"branch": "master",
+			"path": "internal/bitbucket.org/ww/goautoneg",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/prometheus/common/model",
+			"repository": "https://github.com/prometheus/common",
+			"vcs": "git",
+			"revision": "0d5de9d6d8629cb8bee6d4674da4127cd8b615a3",
+			"branch": "master",
+			"path": "/model",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/prometheus/procfs",
+			"repository": "https://github.com/prometheus/procfs",
+			"vcs": "git",
+			"revision": "abf152e5f3e97f2fafac028d2cc06c1feb87ffa5",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/rcrowley/go-metrics",
 			"repository": "https://github.com/rcrowley/go-metrics",
 			"vcs": "git",
@@ -125,6 +238,132 @@
 			"vcs": "git",
 			"revision": "74669b9f388d9d788c97399a0824adbfee78400e",
 			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/common/middleware",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "/common/middleware",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/bitbucket.org/ww/goautoneg",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/bitbucket.org/ww/goautoneg",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/Sirupsen/logrus",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/Sirupsen/logrus",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/beorn7/perks/quantile",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/beorn7/perks/quantile",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/golang/protobuf/proto",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/golang/protobuf/proto",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/gorilla/context",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/gorilla/context",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/gorilla/mux",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/gorilla/mux",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/prometheus/client_golang/prometheus",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/prometheus/client_golang/prometheus",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/prometheus/client_model/go",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/prometheus/client_model/go",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/prometheus/common/expfmt",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/prometheus/common/expfmt",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/prometheus/common/model",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/prometheus/common/model",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/github.com/prometheus/procfs",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/github.com/prometheus/procfs",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/weaveworks/scope/vendor/golang.org/x/sys/unix",
+			"repository": "https://github.com/weaveworks/scope",
+			"vcs": "git",
+			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
+			"branch": "master",
+			"path": "vendor/golang.org/x/sys/unix",
 			"notests": true
 		},
 		{
@@ -152,6 +391,31 @@
 			"revision": "4971afdc2f162e82d185353533d3cf16188a9f4e",
 			"branch": "master",
 			"path": "trace",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "b699b7032584f0953262cb2788a0ca19bb494703",
+			"branch": "master",
+			"path": "/unix",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/airbrake/gobrake.v2",
+			"repository": "https://gopkg.in/airbrake/gobrake.v2",
+			"vcs": "git",
+			"revision": "5d77bd50d083834501349f8be70197b26963674d",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"repository": "https://gopkg.in/gemnasium/logrus-airbrake-hook.v2",
+			"vcs": "git",
+			"revision": "bfee1239d796830ca346767650cce5ba90d58c57",
+			"branch": "master",
 			"notests": true
 		}
 	]

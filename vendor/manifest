@@ -225,6 +225,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/prometheus/prometheus",
+			"repository": "https://github.com/tomwilkie/prometheus",
+			"vcs": "git",
+			"revision": "bae0f66e5a5aa4ff2605bb0466ceb4f57d07af75",
+			"branch": "decouple-scraping-and-storage",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/rcrowley/go-metrics",
 			"repository": "https://github.com/rcrowley/go-metrics",
 			"vcs": "git",
@@ -400,6 +408,51 @@
 			"revision": "b699b7032584f0953262cb2788a0ca19bb494703",
 			"branch": "master",
 			"path": "/unix",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/internal/gen",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "a263ba8db058568bb9beba166777d9c9dbe75d68",
+			"branch": "master",
+			"path": "internal/gen",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/internal/triegen",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "a263ba8db058568bb9beba166777d9c9dbe75d68",
+			"branch": "master",
+			"path": "internal/triegen",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/internal/ucd",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "a263ba8db058568bb9beba166777d9c9dbe75d68",
+			"branch": "master",
+			"path": "/internal/ucd",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/cldr",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "a263ba8db058568bb9beba166777d9c9dbe75d68",
+			"branch": "master",
+			"path": "unicode/cldr",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/text/unicode/rangetable",
+			"repository": "https://go.googlesource.com/text",
+			"vcs": "git",
+			"revision": "a263ba8db058568bb9beba166777d9c9dbe75d68",
+			"branch": "master",
+			"path": "unicode/rangetable",
 			"notests": true
 		},
 		{

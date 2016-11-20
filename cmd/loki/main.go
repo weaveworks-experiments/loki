@@ -35,7 +35,11 @@ func main() {
 
 	router := mux.NewRouter()
 
-	noopHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	noopHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewEncoder(w).Encode(struct{}{}); err != nil {
+			log.Errorf("Error marshalling: %v", err)
+		}
+	})
 
 	router.Handle("/config.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(struct {

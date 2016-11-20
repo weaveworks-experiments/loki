@@ -12,8 +12,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/retrieval"
 	"github.com/weaveworks/scope/common/middleware"
 
+	"github.com/tomwilkie/loki/scraper"
+	"github.com/tomwilkie/loki/storage"
 	"github.com/tomwilkie/loki/zipkin-ui"
 )
 
@@ -32,6 +36,17 @@ func init() {
 
 func main() {
 	listenPort := flag.Int("web.listen-port", 80, "HTTP server listen port.")
+	configFile := flag.String("config.file", "loki.yml", "Loki configuration file name.")
+
+	config, err := config.LoadFile(*configFile)
+	if err != nil {
+		log.Fatalf("Error reading config: %v", err)
+	}
+
+	store := storage.NewSpanStore()
+
+	targetManager := retrieval.NewTargetManager(scraper.NewScraperFn(store))
+	targetManager.ApplyScrapeConfig(config.ScrapeConfigs)
 
 	router := mux.NewRouter()
 

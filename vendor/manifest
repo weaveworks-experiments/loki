@@ -228,7 +228,7 @@
 			"importpath": "github.com/prometheus/prometheus",
 			"repository": "https://github.com/tomwilkie/prometheus",
 			"vcs": "git",
-			"revision": "bae0f66e5a5aa4ff2605bb0466ceb4f57d07af75",
+			"revision": "0bbdf1a5b4b1b20d33433f6d238cc55a40708bbf",
 			"branch": "decouple-scraping-and-storage",
 			"notests": true
 		},

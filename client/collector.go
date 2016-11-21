@@ -51,7 +51,7 @@ func (c *Collector) gather() []*zipkincore.Span {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	spans := make([]*zipkincore.Span, 0, c.length)
-	for i := c.next; c.length > 0; c.length-- {
+	for i := c.next - c.length; c.length > 0; c.length-- {
 		i %= cap(c.spans)
 		spans = append(spans, c.spans[i])
 		c.spans[i] = nil

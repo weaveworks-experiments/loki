@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -13,8 +14,10 @@ var Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	fp := filepath.Join("zipkin-ui/static", req.URL.Path)
 
 	info, err := AssetInfo(fp)
-	if err != nil {
-		log.Warn("Could not get file info: ", err)
+	if err != nil && strings.Contains(fp, ".") {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
 		fp = "zipkin-ui/static/index.html"
 		info, _ = AssetInfo(fp)
 	}

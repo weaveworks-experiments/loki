@@ -1,16 +1,21 @@
 package scraper
 
 import (
+	"encoding/binary"
 	"fmt"
+	"net"
 	"net/http"
+	"strconv"
 	"time"
 
-	"github.com/apache/thrift/lib/go/thrift"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/retrieval"
 	"golang.org/x/net/context"
 	"golang.org/x/net/context/ctxhttp"
+
+	client "github.com/tomwilkie/loki/client"
 )
 
 type Appender interface {
@@ -39,6 +44,10 @@ func (s *scraper) NeedsThrottling() bool {
 	return false
 }
 
+func (s *scraper) Offset(interval time.Duration) time.Duration {
+	return interval
+}
+
 func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
 	req, err := http.NewRequest("GET", s.target.URL().String(), nil)
 	if err != nil {
@@ -55,28 +64,38 @@ func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
 		return fmt.Errorf("server returned HTTP status %s", resp.Status)
 	}
 
-	transport := thrift.NewStreamTransportR(resp.Body)
-	protocol := thrift.NewTCompactProtocol(transport)
-
-	ttype, size, err := protocol.ReadListBegin()
+	spans, err := client.ReadSpans(resp.Body)
 	if err != nil {
 		return err
 	}
-	if ttype != thrift.STRUCT {
-		return fmt.Errorf("unexpected type: %v", ttype)
-	}
-	for i := 0; i < size; i++ {
-		span := zipkincore.NewSpan()
-		if err := span.Read(protocol); err != nil {
-			return err
+
+	// Pick out the job and use that as the service name and the
+	// instance as the address/port
+	labels := s.target.Labels()
+	endpoint := zipkincore.NewEndpoint()
+	endpoint.ServiceName = string(labels[model.JobLabel])
+	if hostname, port, err := net.SplitHostPort(string(labels[model.InstanceLabel])); err == nil {
+		port, err := strconv.Atoi(port)
+		if err != nil {
+			endpoint.Port = int16(port)
 		}
+		if ip := net.ParseIP(hostname); ip != nil {
+			endpoint.Ipv4 = int32(binary.BigEndian.Uint32(ip.To4()))
+		}
+	}
+
+	for _, span := range spans {
+
+		for _, annotation := range span.Annotations {
+			annotation.Host = endpoint
+		}
+		for _, annotation := range span.BinaryAnnotations {
+			annotation.Host = endpoint
+		}
+
 		if err := s.appender.Append(span); err != nil {
 			return err
 		}
 	}
-	return protocol.ReadListEnd()
-}
-
-func (s *scraper) Offset(interval time.Duration) time.Duration {
-	return interval
+	return nil
 }

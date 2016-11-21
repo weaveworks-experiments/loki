@@ -15,11 +15,13 @@ Internally Loki is really just an opinionated version of OpenZipkin.
 
 Instrument you go application according to OpenTracing
 - For gRPC, use https://github.com/grpc-ecosystem/grpc-opentracing/tree/master/go/otgrpc
+- For HTTP, use https://github.com/opentracing-contrib/go-stdlib
 
 ```go
 import (
     "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
     "github.com/tomwilkie/loki/client"
+
 )
 
 var tracer :=

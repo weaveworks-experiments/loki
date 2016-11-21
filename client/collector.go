@@ -1,6 +1,8 @@
 package loki
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -12,29 +14,30 @@ import (
 var globalCollector = NewCollector(1024)
 
 type Collector struct {
-	mtx   sync.Mutex
-	spans []*zipkincore.Span
-	i     int
-	l     int
+	mtx    sync.Mutex
+	spans  []*zipkincore.Span
+	next   int
+	length int
 }
 
 func NewCollector(capacity int) *Collector {
 	return &Collector{
-		spans: make([]*zipkincore.Span, capacity, capacity),
-		i:     0,
-		l:     0,
+		spans:  make([]*zipkincore.Span, capacity, capacity),
+		next:   0,
+		length: 0,
 	}
 }
 
 func (c *Collector) Collect(span *zipkincore.Span) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.spans[c.i] = span
 
-	c.i++
-	c.i %= cap(c.spans) // wrap
-	if c.l < cap(c.spans) {
-		c.l++
+	c.spans[c.next] = span
+	c.next++
+	c.next %= cap(c.spans) // wrap
+
+	if c.length < cap(c.spans) {
+		c.length++
 	}
 
 	return nil
@@ -47,45 +50,62 @@ func (*Collector) Close() error {
 func (c *Collector) gather() []*zipkincore.Span {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	spans := make([]*zipkincore.Span, 0, c.l)
-	for i, iters := c.i, 0; iters < c.l; iters++ {
+	spans := make([]*zipkincore.Span, 0, c.length)
+	for i := c.next; c.length > 0; c.length-- {
 		i %= cap(c.spans)
 		spans = append(spans, c.spans[i])
 		c.spans[i] = nil
 		i++
 	}
-	c.i = 0
-	c.l = 0
 	return spans
 }
 
 func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	spans := c.gather()
+	if err := WriteSpans(spans, w); err != nil {
+		log.Printf("error writing spans: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func WriteSpans(spans []*zipkincore.Span, w io.Writer) error {
 	transport := thrift.NewStreamTransportW(w)
 	protocol := thrift.NewTCompactProtocol(transport)
 
 	if err := protocol.WriteListBegin(thrift.STRUCT, len(spans)); err != nil {
-		log.Printf("error writing spans: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 	for _, span := range spans {
 		if err := span.Write(protocol); err != nil {
-			log.Printf("error writing spans: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return err
 		}
 	}
 	if err := protocol.WriteListEnd(); err != nil {
-		log.Printf("error writing spans: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
-	if err := protocol.Flush(); err != nil {
-		log.Printf("error flushing: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	return protocol.Flush()
+}
+
+func ReadSpans(r io.Reader) ([]*zipkincore.Span, error) {
+	transport := thrift.NewStreamTransportR(r)
+	protocol := thrift.NewTCompactProtocol(transport)
+	ttype, size, err := protocol.ReadListBegin()
+	if err != nil {
+		return nil, err
 	}
+	spans := make([]*zipkincore.Span, 0, size)
+	if ttype != thrift.STRUCT {
+		return nil, fmt.Errorf("unexpected type: %v", ttype)
+	}
+	for i := 0; i < size; i++ {
+		span := zipkincore.NewSpan()
+		if err := span.Read(protocol); err != nil {
+			return nil, err
+		}
+		spans = append(spans, span)
+	}
+	return spans, protocol.ReadListEnd()
 }
 
 func Handler() http.Handler {

@@ -11,7 +11,7 @@ import (
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
-func FromIdStr(id string) (int64, error) {
+func fromIDStr(id string) (int64, error) {
 	bytes, err := hex.DecodeString(id)
 	if err != nil {
 		return 0, err

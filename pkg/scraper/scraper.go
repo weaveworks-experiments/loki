@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/net/context/ctxhttp"
 
-	client "github.com/tomwilkie/loki/client"
+	client "github.com/tomwilkie/loki/pkg/client"
 )
 
 type Appender interface {

@@ -124,7 +124,7 @@ func (s *SpanStore) garbageCollect() {
 	if len(s.traces) > inMemoryTraces {
 		// for now, just delete 10%
 		toDelete := int(inMemoryTraces * 0.1)
-		for k, _ := range s.traces {
+		for k := range s.traces {
 			toDelete--
 			if toDelete < 0 {
 				return

@@ -31,8 +31,8 @@ EXES = $(LOKI_EXE)
 all: $(UPTODATE_FILES)
 
 # And what goes into each exe
-$(LOKI_EXE): $(shell find . -name '*.go') zipkin-ui/bindata.go
-ui/bindata.go: $(shell find zipkin-ui/static)
+$(LOKI_EXE): $(shell find . -name '*.go') pkg/zipkin-ui/bindata.go
+pkg/zipkin-ui/bindata.go: $(shell find pkg/zipkin-ui/static)
 
 # And now what goes into each image
 loki-build/$(UPTODATE): loki-build/*
@@ -54,7 +54,7 @@ NETGO_CHECK = @strings $@ | grep cgo_stub\\\.go >/dev/null || { \
 
 ifeq ($(BUILD_IN_CONTAINER),true)
 
-$(EXES) zipkin-ui/bindata.go lint test shell: loki-build/$(UPTODATE)
+$(EXES) pkg/zipkin-ui/bindata.go lint test shell: loki-build/$(UPTODATE)
 	@mkdir -p $(shell pwd)/.pkg
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
@@ -67,11 +67,11 @@ $(EXES): loki-build/$(UPTODATE)
 	go build $(GO_FLAGS) -o $@ ./$(@D)
 	$(NETGO_CHECK)
 
-zipkin-ui/bindata.go: loki-build/$(UPTODATE)
-	go-bindata -pkg ui -o zipkin-ui/bindata.go zipkin-ui/static/
+pkg/zipkin-ui/bindata.go: loki-build/$(UPTODATE)
+	go-bindata -pkg ui -o pkg/zipkin-ui/bindata.go pkg/zipkin-ui/static/
 
 lint: loki-build/$(UPTODATE)
-	./tools/lint -notestpackage .
+	./tools/lint -notestpackage -nocomment .
 
 test: loki-build/$(UPTODATE)
 	./tools/test -no-go-get
@@ -83,7 +83,7 @@ endif
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
-	rm -rf $(UPTODATE_FILES) $(EXES) zipkin-ui/bindata.go
+	rm -rf $(UPTODATE_FILES) $(EXES) pkg/zipkin-ui/bindata.go
 	go clean ./...
 
 

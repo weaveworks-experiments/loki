@@ -30,7 +30,7 @@ func main() {
     // Create a Loki tracer
     tracer, err := loki.NewTracer(loki.DefaultConfig)
 
-  	// explicitely set our tracer to be the default tracer.
+  	// explicitly set our tracer to be the default tracer.
   	opentracing.InitGlobalTracer(tracer)
 
     // Create an instrumented gRPC server

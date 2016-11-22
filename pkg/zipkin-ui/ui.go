@@ -11,7 +11,7 @@ import (
 )
 
 var Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	fp := filepath.Join("zipkin-ui/static", req.URL.Path)
+	fp := filepath.Join("pkg/zipkin-ui/static", req.URL.Path)
 
 	info, err := AssetInfo(fp)
 	if err != nil && strings.Contains(fp, ".") {

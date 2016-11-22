@@ -108,6 +108,7 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 			StartMS:     startTS,
 			Limit:       10,
 			ServiceName: serviceName,
+			SpanName:    values.Get("spanName"),
 		}
 		traces := store.Traces(query)
 		if err := json.NewEncoder(w).Encode(TracesToWire(traces)); err != nil {

@@ -62,7 +62,7 @@ func (t *trace) match(query Query) bool {
 		}
 	}
 
-	if query.SpanName != "" {
+	if query.SpanName != "" && query.SpanName != "all" {
 		found := false
 	outerSpanName:
 		for _, span := range t.spans {

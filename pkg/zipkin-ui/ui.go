@@ -18,7 +18,7 @@ var Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {
-		fp = "zipkin-ui/static/index.html"
+		fp = "pkg/zipkin-ui/static/index.html"
 		info, _ = AssetInfo(fp)
 	}
 

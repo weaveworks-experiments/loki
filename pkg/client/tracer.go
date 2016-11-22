@@ -8,19 +8,13 @@ import (
 	"github.com/openzipkin/zipkin-go-opentracing"
 )
 
-type Config struct {
-	ServiceName string
-}
-
-var DefaultConfig = Config{}
-
-func NewTracer(cfg Config) (opentracing.Tracer, error) {
+func NewTracer() (opentracing.Tracer, error) {
 	// create recorder.
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, err
 	}
-	recorder := zipkintracer.NewRecorder(globalCollector, false, hostname, cfg.ServiceName)
+	recorder := zipkintracer.NewRecorder(globalCollector, false, hostname, "")
 
 	// create tracer.
 	tracer, err := zipkintracer.NewTracer(recorder)

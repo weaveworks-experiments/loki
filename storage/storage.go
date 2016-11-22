@@ -31,19 +31,47 @@ type Query struct {
 }
 
 func (t *trace) match(query Query) bool {
-	//if query.ServiceName != "" {
-	//	for _, span := range t.spans {
-	//		if span.GetServiceName() != query.ServiceName {
-	//			return false
-	//		}
-	//	}
-	//}
-
 	for _, span := range t.spans {
 		spanStartMS := span.GetTimestamp() / 1000
 		spanEndMS := (span.GetTimestamp() + span.GetDuration()) / 1000
 		if spanEndMS < query.StartMS || spanStartMS > query.EndMS {
 			log.Infof("dropping span - %d < %d || %d > %d", spanEndMS, query.StartMS, spanStartMS, query.EndMS)
+			return false
+		}
+	}
+
+	if query.ServiceName != "" {
+		found := false
+	outerServiceName:
+		for _, span := range t.spans {
+			for _, annotation := range span.Annotations {
+				if annotation.IsSetHost() && annotation.GetHost().GetServiceName() == query.ServiceName {
+					found = true
+					break outerServiceName
+				}
+			}
+			for _, annotation := range span.BinaryAnnotations {
+				if annotation.IsSetHost() && annotation.GetHost().GetServiceName() == query.ServiceName {
+					found = true
+					break outerServiceName
+				}
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
+	if query.SpanName != "" {
+		found := false
+	outerSpanName:
+		for _, span := range t.spans {
+			if span.GetName() == query.SpanName {
+				found = true
+				break outerSpanName
+			}
+		}
+		if !found {
 			return false
 		}
 	}
@@ -157,8 +185,6 @@ func (s *SpanStore) Trace(id int64) []*zipkincore.Span {
 func (s *SpanStore) Traces(query Query) [][]*zipkincore.Span {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-
-	log.Infof("%d traces", len(s.traces))
 
 	traces := []*trace{}
 	for _, trace := range s.traces {

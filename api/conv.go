@@ -4,7 +4,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"net"
+	_ "unsafe" // For math.Float64frombits
 
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
@@ -45,6 +47,52 @@ func endpointToWire(endpoint *zipkincore.Endpoint) interface{} {
 	}
 }
 
+func binaryAnnotationToWire(annotation *zipkincore.BinaryAnnotation) interface{} {
+	var value interface{}
+	switch annotation.AnnotationType {
+	case zipkincore.AnnotationType_BOOL:
+		value = len(annotation.Value) > 0 && annotation.Value[0] == '\x01'
+
+	case zipkincore.AnnotationType_BYTES:
+		value = annotation.Value
+
+	case zipkincore.AnnotationType_I16:
+		value = int16(binary.BigEndian.Uint16(annotation.Value))
+
+	case zipkincore.AnnotationType_I32:
+		value = int32(binary.BigEndian.Uint32(annotation.Value))
+
+	case zipkincore.AnnotationType_I64:
+		value = int64(binary.BigEndian.Uint64(annotation.Value))
+
+	case zipkincore.AnnotationType_DOUBLE:
+		b := binary.BigEndian.Uint64(annotation.Value)
+		value = math.Float64frombits(b)
+
+	case zipkincore.AnnotationType_STRING:
+		value = string(annotation.Value)
+	}
+
+	return struct {
+		Endpoint interface{} `json:"endpoint"`
+		Key      string      `json:"key"`
+		Value    interface{} `json:"value"`
+	}{
+		Endpoint: endpointToWire(annotation.Host),
+		Key:      annotation.Key,
+		Value:    value,
+	}
+
+}
+
+func binaryAnnotationsToWire(annotations []*zipkincore.BinaryAnnotation) []interface{} {
+	result := make([]interface{}, 0, len(annotations))
+	for _, annotation := range annotations {
+		result = append(result, binaryAnnotationToWire(annotation))
+	}
+	return result
+}
+
 func annotationToWire(annotation *zipkincore.Annotation) interface{} {
 	return struct {
 		Endpoint  interface{} `json:"endpoint"`
@@ -76,13 +124,14 @@ func spanToWire(span *zipkincore.Span) interface{} {
 		Annotations       []interface{} `json:"annotations"`
 		BinaryAnnotations []interface{} `json:"binaryAnnotations"`
 	}{
-		TraceID:     idStr(&span.TraceID),
-		Name:        span.Name,
-		ID:          idStr(&span.ID),
-		ParentID:    idStr(span.ParentID),
-		Timestamp:   span.Timestamp,
-		Duration:    span.Duration,
-		Annotations: annotationsToWire(span.Annotations),
+		TraceID:           idStr(&span.TraceID),
+		Name:              span.Name,
+		ID:                idStr(&span.ID),
+		ParentID:          idStr(span.ParentID),
+		Timestamp:         span.Timestamp,
+		Duration:          span.Duration,
+		Annotations:       annotationsToWire(span.Annotations),
+		BinaryAnnotations: binaryAnnotationsToWire(span.BinaryAnnotations),
 	}
 }
 

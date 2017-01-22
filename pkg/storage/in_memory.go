@@ -81,7 +81,7 @@ func (ts byTimestamp) Len() int           { return len(ts) }
 func (ts byTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 func (ts byTimestamp) Less(i, j int) bool { return ts[i].GetTimestamp() < ts[j].GetTimestamp() }
 
-func NewSpanStore() SpanStore {
+func NewSpanStore() *inMemory {
 	return &inMemory{
 		traces:    map[int64]*trace{},
 		services:  map[string]struct{}{},
@@ -153,42 +153,42 @@ func (s *inMemory) garbageCollect() {
 	}
 }
 
-func (s *inMemory) Services() []string {
+func (s *inMemory) Services() ([]string, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	result := make([]string, 0, len(s.services))
 	for service := range s.services {
 		result = append(result, service)
 	}
-	return result
+	return result, nil
 }
 
-func (s *inMemory) SpanNames(serviceName string) []string {
+func (s *inMemory) SpanNames(serviceName string) ([]string, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	names, ok := s.spanNames[serviceName]
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	result := make([]string, 0, len(names))
 	for name := range names {
 		result = append(result, name)
 	}
-	return result
+	return result, nil
 }
 
-func (s *inMemory) Trace(id int64) []*zipkincore.Span {
+func (s *inMemory) Trace(id int64) ([]*zipkincore.Span, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
 	trace, ok := s.traces[id]
 	if !ok {
-		return nil
+		return nil, nil
 	}
-	return trace.spans
+	return trace.spans, nil
 }
 
-func (s *inMemory) Traces(query Query) [][]*zipkincore.Span {
+func (s *inMemory) Traces(query Query) ([][]*zipkincore.Span, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -207,5 +207,5 @@ func (s *inMemory) Traces(query Query) [][]*zipkincore.Span {
 	if query.Limit > 0 && len(result) > query.Limit {
 		result = result[:query.Limit]
 	}
-	return result
+	return result, nil
 }

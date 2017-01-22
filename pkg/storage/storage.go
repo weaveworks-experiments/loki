@@ -6,10 +6,10 @@ import (
 
 type SpanStore interface {
 	Append(*zipkincore.Span) error
-	Services() []string
-	SpanNames(serviceName string) []string
-	Trace(id int64) []*zipkincore.Span
-	Traces(query Query) [][]*zipkincore.Span
+	Services() ([]string, error)
+	SpanNames(serviceName string) ([]string, error)
+	Trace(id int64) ([]*zipkincore.Span, error)
+	Traces(query Query) ([][]*zipkincore.Span, error)
 }
 
 type Query struct {

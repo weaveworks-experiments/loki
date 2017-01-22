@@ -36,6 +36,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/boltdb/bolt",
+			"repository": "https://github.com/boltdb/bolt",
+			"vcs": "git",
+			"revision": "a705895fdad108f053eae7ee011ed94a0541ee13",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/davecgh/go-spew/spew",
 			"repository": "https://github.com/davecgh/go-spew",
 			"vcs": "git",
@@ -250,6 +258,22 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/sburnett/lexicographic-tuples",
+			"repository": "https://github.com/sburnett/lexicographic-tuples",
+			"vcs": "git",
+			"revision": "0d464282e8c00ae6790278a57c91e5d527d2277c",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/spaolacci/murmur3",
+			"repository": "https://github.com/spaolacci/murmur3",
+			"vcs": "git",
+			"revision": "0d12bf811670bf6a1a63828dfbd003eded177fce",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/stathat/go",
 			"repository": "https://github.com/stathat/go",
 			"vcs": "git",
@@ -381,6 +405,22 @@
 			"revision": "7b0bf508dd2126990c9d51e50d9529efd70ce880",
 			"branch": "master",
 			"path": "vendor/golang.org/x/sys/unix",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/willf/bitset",
+			"repository": "https://github.com/willf/bitset",
+			"vcs": "git",
+			"revision": "5c3c0fce48842b2c0bbaa99b4e61b0175d84b47c",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/willf/bloom",
+			"repository": "https://github.com/willf/bloom",
+			"vcs": "git",
+			"revision": "278d7d8b14584245fe9f826a30e48d4301bd6fd9",
+			"branch": "master",
 			"notests": true
 		},
 		{

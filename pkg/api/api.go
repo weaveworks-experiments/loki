@@ -31,7 +31,7 @@ func parseInt64(values url.Values, key string, def int64) (int64, error) {
 	return intVal, nil
 }
 
-func Register(router *mux.Router, store *storage.SpanStore) {
+func Register(router *mux.Router, store storage.SpanStore) {
 	router.Handle("/api/v1/dependencies", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(struct{}{}); err != nil {
 			log.Errorf("Error marshalling: %v", err)

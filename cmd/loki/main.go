@@ -15,10 +15,10 @@ import (
 	"github.com/prometheus/prometheus/retrieval"
 	"github.com/weaveworks/scope/common/middleware"
 
-	"github.com/tomwilkie/loki/pkg/api"
-	"github.com/tomwilkie/loki/pkg/scraper"
-	"github.com/tomwilkie/loki/pkg/storage"
-	"github.com/tomwilkie/loki/pkg/zipkin-ui"
+	"github.com/weaveworks-experiments/loki/pkg/api"
+	"github.com/weaveworks-experiments/loki/pkg/scraper"
+	"github.com/weaveworks-experiments/loki/pkg/storage"
+	"github.com/weaveworks-experiments/loki/pkg/zipkin-ui"
 )
 
 var (

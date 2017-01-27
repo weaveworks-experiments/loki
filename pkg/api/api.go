@@ -10,7 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 
-	"github.com/tomwilkie/loki/pkg/storage"
+	"github.com/weaveworks-experiments/loki/pkg/storage"
 )
 
 const (

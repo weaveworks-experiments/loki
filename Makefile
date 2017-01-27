@@ -3,7 +3,7 @@
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
-IMAGE_PREFIX := tomwilkie
+IMAGE_PREFIX := weaveworks
 IMAGE_TAG := $(shell ./tools/image-tag)
 UPTODATE := .uptodate
 
@@ -58,7 +58,7 @@ $(EXES) pkg/zipkin-ui/bindata.go lint test shell: loki-build/$(UPTODATE)
 	@mkdir -p $(shell pwd)/.pkg
 	$(SUDO) docker run $(RM) -ti \
 		-v $(shell pwd)/.pkg:/go/pkg \
-		-v $(shell pwd):/go/src/github.com/tomwilkie/loki \
+		-v $(shell pwd):/go/src/github.com/weaveworks-experiments/loki \
 		$(IMAGE_PREFIX)/loki-build $@
 
 else

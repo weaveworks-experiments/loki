@@ -74,7 +74,7 @@ lint: loki-build/$(UPTODATE)
 	./tools/lint -notestpackage -nocomment .
 
 test: loki-build/$(UPTODATE)
-	./tools/test -no-go-get
+	./tools/test -no-go-get -netgo
 
 shell: loki-build/$(UPTODATE)
 	bash

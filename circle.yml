@@ -10,12 +10,13 @@ dependencies:
   override:
     - |
         cd loki-build && \
-        ../tools/rebuild-image tomwilkie/loki-build . build.sh Dockerfile && \
+        ../tools/rebuild-image weaveworks/loki-build . build.sh Dockerfile && \
         touch .uptodate
 
 test:
   override:
     - make RM= test
+    - make RM= lint
     - make RM=
 
 deployment:
@@ -23,4 +24,4 @@ deployment:
     branch: master
     commands:
       - docker login -e "$DOCKER_REGISTRY_EMAIL" -u "$DOCKER_REGISTRY_USER" -p "$DOCKER_REGISTRY_PASSWORD"
-      - docker push tomwilkie/loki:$(./tools/image-tag)
+      - docker push weaveworks/loki:$(./tools/image-tag)

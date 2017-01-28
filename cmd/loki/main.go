@@ -36,6 +36,7 @@ func init() {
 
 func main() {
 	listenPort := flag.Int("web.listen-port", 80, "HTTP server listen port.")
+	pathPrefix := flag.String("web.path-prefix", "", "Path under which server is visible.")
 	configFile := flag.String("config.file", "loki.yml", "Loki configuration file name.")
 	flag.Parse()
 
@@ -55,7 +56,9 @@ func main() {
 	api.Register(router, store)
 
 	router.Handle("/metrics", prometheus.Handler())
-	router.PathPrefix("/").Handler(ui.Handler)
+	router.PathPrefix("/").Handler(ui.UI{
+		PathPrefix: *pathPrefix,
+	})
 
 	instrumented := middleware.Merge(
 		middleware.Log{

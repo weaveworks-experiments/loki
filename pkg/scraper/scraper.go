@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -49,13 +50,24 @@ func (s *scraper) Offset(interval time.Duration) time.Duration {
 }
 
 func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
+	log.Infof("Scraping %s", s.target.URL().String())
+	if err := s.scrape(ctx, ts); err != nil {
+		log.Errorf("Error scraping %s: %v", s.target.URL().String(), err)
+		return err
+	}
+	return nil
+}
+
+func (s *scraper) scrape(ctx context.Context, ts time.Time) error {
 	req, err := http.NewRequest("GET", s.target.URL().String(), nil)
 	if err != nil {
+		log.Errorf("1: %v", err)
 		return err
 	}
 
 	resp, err := ctxhttp.Do(ctx, s.client, req)
 	if err != nil {
+		log.Errorf("2: %v", err)
 		return err
 	}
 	defer resp.Body.Close()
@@ -66,6 +78,7 @@ func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
 
 	spans, err := client.ReadSpans(resp.Body)
 	if err != nil {
+		log.Errorf("3: %v", err)
 		return err
 	}
 

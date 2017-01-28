@@ -36,6 +36,10 @@ func TestCollectorSpans(t *testing.T) {
 	if have := collector.gather(); !reflect.DeepEqual(want, have) {
 		t.Fatalf("%s", Diff(want, have))
 	}
+
+	if want, have := []*zipkincore.Span{}, collector.gather(); !reflect.DeepEqual(want, have) {
+		t.Fatalf("%s", Diff(want, have))
+	}
 }
 
 func TestCodec(t *testing.T) {

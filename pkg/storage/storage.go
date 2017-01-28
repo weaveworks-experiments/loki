@@ -192,14 +192,14 @@ func (s *SpanStore) Traces(query Query) [][]*zipkincore.Span {
 			traces = append(traces, trace)
 		}
 	}
-	sort.Sort(byMinTimestamp(traces))
+	sort.Sort(sort.Reverse(byMinTimestamp(traces)))
+	if query.Limit > 0 && len(traces) > query.Limit {
+		traces = traces[:query.Limit]
+	}
 
 	result := [][]*zipkincore.Span{}
 	for _, trace := range traces {
 		result = append(result, trace.spans)
-	}
-	if query.Limit > 0 && len(result) > query.Limit {
-		result = result[len(result)-query.Limit:]
 	}
 	return result
 }

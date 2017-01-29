@@ -11,8 +11,10 @@ import (
 const inMemoryTraces = 100 * 1024
 
 type SpanStore struct {
-	mtx    sync.RWMutex
-	traces map[int64]*trace
+	mtx       sync.RWMutex
+	traces    map[int64]*trace
+	services  map[string]struct{}
+	spanNames map[string]map[string]struct{}
 }
 
 type trace struct {
@@ -93,7 +95,9 @@ func (ts byTimestamp) Less(i, j int) bool { return ts[i].GetTimestamp() < ts[j].
 
 func NewSpanStore() *SpanStore {
 	return &SpanStore{
-		traces: map[int64]*trace{},
+		traces:    map[int64]*trace{},
+		services:  map[string]struct{}{},
+		spanNames: map[string]map[string]struct{}{},
 	}
 }
 
@@ -117,6 +121,26 @@ func (s *SpanStore) Append(span *zipkincore.Span) error {
 	}
 
 	s.traces[traceID] = t
+
+	// update services 'index'
+	services := map[string]struct{}{}
+	for _, annotation := range span.Annotations {
+		s.services[annotation.Host.ServiceName] = struct{}{}
+		services[annotation.Host.ServiceName] = struct{}{}
+	}
+	for _, annotation := range span.BinaryAnnotations {
+		s.services[annotation.Host.ServiceName] = struct{}{}
+		services[annotation.Host.ServiceName] = struct{}{}
+	}
+
+	// update spanNames 'index'
+	for service := range services {
+		if _, ok := s.spanNames[service]; !ok {
+			s.spanNames[service] = map[string]struct{}{}
+		}
+		s.spanNames[service][span.Name] = struct{}{}
+	}
+
 	return nil
 }
 
@@ -137,19 +161,8 @@ func (s *SpanStore) garbageCollect() {
 func (s *SpanStore) Services() []string {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	services := map[string]struct{}{}
-	for _, trace := range s.traces {
-		for _, span := range trace.spans {
-			for _, annotation := range span.Annotations {
-				services[annotation.Host.ServiceName] = struct{}{}
-			}
-			for _, annotation := range span.BinaryAnnotations {
-				services[annotation.Host.ServiceName] = struct{}{}
-			}
-		}
-	}
-	result := make([]string, 0, len(services))
-	for service := range services {
+	result := make([]string, 0, len(s.services))
+	for service := range s.services {
 		result = append(result, service)
 	}
 	return result
@@ -158,11 +171,9 @@ func (s *SpanStore) Services() []string {
 func (s *SpanStore) SpanNames(serviceName string) []string {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	names := map[string]struct{}{}
-	for _, trace := range s.traces {
-		for _, span := range trace.spans {
-			names[span.Name] = struct{}{}
-		}
+	names, ok := s.spanNames[serviceName]
+	if !ok {
+		return nil
 	}
 	result := make([]string, 0, len(names))
 	for name := range names {

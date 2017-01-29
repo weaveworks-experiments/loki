@@ -68,7 +68,7 @@ $(EXES): loki-build/$(UPTODATE)
 	$(NETGO_CHECK)
 
 pkg/zipkin-ui/bindata.go: loki-build/$(UPTODATE)
-	go-bindata -pkg ui -o pkg/zipkin-ui/bindata.go pkg/zipkin-ui/static/
+	go-bindata -pkg ui -o pkg/zipkin-ui/bindata.go pkg/zipkin-ui/static/...
 
 lint: loki-build/$(UPTODATE)
 	./tools/lint -notestpackage -nocomment .

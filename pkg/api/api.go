@@ -98,10 +98,10 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 		}
 
 		serviceName := values.Get("serviceName")
-		if serviceName == "" {
-			http.Error(w, "serviceName required", http.StatusBadRequest)
-			return
-		}
+		//if serviceName == "" {
+		//	http.Error(w, "serviceName required", http.StatusBadRequest)
+		//	return
+		//}
 
 		query := storage.Query{
 			EndMS:       endTS,

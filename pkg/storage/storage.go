@@ -23,23 +23,32 @@ type trace struct {
 }
 
 type Query struct {
-	ServiceName string
-	SpanName    string
-	MinDuration int64
-	MaxDuration int64
-	EndMS       int64
-	StartMS     int64
-	Limit       int
+	ServiceName   string
+	SpanName      string
+	MinDurationUS int64
+	MaxDurationUS int64
+	EndMS         int64
+	StartMS       int64
+	Limit         int
 }
 
 func (t *trace) match(query Query) bool {
+	minDuration := false
 	for _, span := range t.spans {
 		spanStartMS := span.GetTimestamp() / 1000
 		spanEndMS := (span.GetTimestamp() + span.GetDuration()) / 1000
+
+		// All spans must be within the time range
 		if spanEndMS < query.StartMS || spanStartMS > query.EndMS {
 			log.Infof("dropping span - %d < %d || %d > %d", spanEndMS, query.StartMS, spanStartMS, query.EndMS)
 			return false
 		}
+
+		// Only one span needs to be of length MinDuration
+		minDuration = minDuration || span.GetDuration() >= query.MinDurationUS
+	}
+	if !minDuration {
+		return false
 	}
 
 	if query.ServiceName != "" {

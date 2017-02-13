@@ -97,6 +97,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 			return
 		}
 
+		minDuration, err := parseInt64(values, "minDuration", 0)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		serviceName := values.Get("serviceName")
 		if serviceName == "" {
 			http.Error(w, "serviceName required", http.StatusBadRequest)
@@ -104,11 +110,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 		}
 
 		query := storage.Query{
-			EndMS:       endTS,
-			StartMS:     startTS,
-			Limit:       10,
-			ServiceName: serviceName,
-			SpanName:    values.Get("spanName"),
+			EndMS:         endTS,
+			StartMS:       startTS,
+			Limit:         10,
+			ServiceName:   serviceName,
+			SpanName:      values.Get("spanName"),
+			MinDurationUS: minDuration,
 		}
 		traces := store.Traces(query)
 		if err := json.NewEncoder(w).Encode(TracesToWire(traces)); err != nil {

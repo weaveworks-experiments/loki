@@ -3,6 +3,7 @@ package loki
 import (
 	"bytes"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
 
@@ -23,8 +24,9 @@ func TestCollectorSpans(t *testing.T) {
 	}
 
 	want := []*zipkincore.Span{}
-	for i := 0; i < 5; i++ {
+	for i := 1; i < 6; i++ {
 		span := zipkincore.NewSpan()
+		span.TraceID = int64(i)
 		span.Name = fmt.Sprintf("span %d", i)
 		want = append(want, span)
 
@@ -39,6 +41,57 @@ func TestCollectorSpans(t *testing.T) {
 
 	if want, have := []*zipkincore.Span{}, collector.gather(); !reflect.DeepEqual(want, have) {
 		t.Fatalf("%s", Diff(want, have))
+	}
+
+	want = []*zipkincore.Span{}
+	for i := 7; i < 11; i++ {
+		span := zipkincore.NewSpan()
+		span.TraceID = int64(i)
+		span.Name = fmt.Sprintf("span %d", i)
+		want = append(want, span)
+
+		if err := collector.Collect(span); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if have := collector.gather(); !reflect.DeepEqual(want, have) {
+		t.Fatalf("%s", Diff(want, have))
+	}
+
+	if want, have := []*zipkincore.Span{}, collector.gather(); !reflect.DeepEqual(want, have) {
+		t.Fatalf("%s", Diff(want, have))
+	}
+}
+
+func TestCollectorFuzzSpans(t *testing.T) {
+	capacity := 7
+	collector := NewCollector(capacity)
+
+	iterate := func(iteration int) {
+		toInsert := rand.Intn(capacity + 1)
+		want := []*zipkincore.Span{}
+		for i := 0; i < toInsert; i++ {
+			span := zipkincore.NewSpan()
+			span.TraceID = int64(i)
+			span.Name = fmt.Sprintf("span %d %d", iteration, i)
+			want = append(want, span)
+			if err := collector.Collect(span); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if have := collector.gather(); !reflect.DeepEqual(want, have) {
+			t.Fatalf("%s", Diff(want, have))
+		}
+
+		if want, have := []*zipkincore.Span{}, collector.gather(); !reflect.DeepEqual(want, have) {
+			t.Fatalf("%s", Diff(want, have))
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		iterate(i)
 	}
 }
 

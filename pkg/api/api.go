@@ -85,13 +85,13 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 		nowMS := time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 		values := r.URL.Query()
 
-		startTS, err := parseInt64(values, "startTS", nowMS-defaultWindowMS)
+		endTS, err := parseInt64(values, "endTs", nowMS)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		endTS, err := parseInt64(values, "endTS", nowMS)
+		lookback, err := parseInt64(values, "lookback", defaultWindowMS)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -117,7 +117,7 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 
 		query := storage.Query{
 			EndMS:         endTS,
-			StartMS:       startTS,
+			StartMS:       endTS - lookback,
 			Limit:         int(limit),
 			ServiceName:   serviceName,
 			SpanName:      values.Get("spanName"),

@@ -8,7 +8,7 @@ import (
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
-const inMemoryTraces = 100 * 1024
+const inMemoryTraces = 1024 * 1024
 
 type SpanStore struct {
 	mtx       sync.RWMutex
@@ -156,7 +156,7 @@ func (s *SpanStore) Append(span *zipkincore.Span) error {
 func (s *SpanStore) garbageCollect() {
 	if len(s.traces) > inMemoryTraces {
 		// for now, just delete 10%
-		toDelete := int(inMemoryTraces * 0.1)
+		toDelete := int(inMemoryTraces / 10)
 		for k := range s.traces {
 			toDelete--
 			if toDelete < 0 {

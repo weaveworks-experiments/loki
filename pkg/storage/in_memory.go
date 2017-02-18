@@ -85,7 +85,7 @@ func (ts byTimestamp) Len() int           { return len(ts) }
 func (ts byTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 func (ts byTimestamp) Less(i, j int) bool { return ts[i].GetTimestamp() < ts[j].GetTimestamp() }
 
-func NewSpanStore() *inMemory {
+func NewSpanStore() SpanStore {
 	return &inMemory{
 		traces:    map[int64]*trace{},
 		services:  map[string]struct{}{},
@@ -203,13 +203,13 @@ func (s *inMemory) Traces(query Query) ([][]*zipkincore.Span, error) {
 		}
 	}
 	sort.Sort(sort.Reverse(byMinTimestamp(traces)))
+	if query.Limit > 0 && len(traces) > query.Limit {
+		traces = traces[:query.Limit]
+	}
 
 	result := [][]*zipkincore.Span{}
 	for _, trace := range traces {
 		result = append(result, trace.spans)
-	}
-	if query.Limit > 0 && len(result) > query.Limit {
-		result = result[:query.Limit]
 	}
 	return result, nil
 }

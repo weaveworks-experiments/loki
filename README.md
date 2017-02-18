@@ -9,7 +9,7 @@ Loki consists of:
 - A OpenTracing compatible tracer
 - The Loki app
 
-Internally Loki is really just an opinionated version of OpenZipkin.
+Internally Loki is really just an opinionated reimplementation of OpenZipkin.
 
 ## Instrumenting your app
 
@@ -20,11 +20,8 @@ Instrument you go application according to OpenTracing
 ```go
 import (
     "github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-    "github.com/tomwilkie/loki/client"
-
+    "github.com/weaveworks-experiments/pkg/loki/client"
 )
-
-var tracer :=
 
 func main() {
     // Create a Loki tracer

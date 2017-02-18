@@ -31,7 +31,7 @@ func parseInt64(values url.Values, key string, def int64) (int64, error) {
 	return intVal, nil
 }
 
-func Register(router *mux.Router, store *storage.SpanStore) {
+func Register(router *mux.Router, store storage.SpanStore) {
 	router.Handle("/api/v1/dependencies", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(struct{}{}); err != nil {
 			log.Errorf("Error marshalling: %v", err)
@@ -51,7 +51,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 	}))
 
 	router.Handle("/api/v1/services", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := json.NewEncoder(w).Encode(store.Services()); err != nil {
+		services, err := store.Services()
+		if err != nil {
+			log.Errorf("Store error: %v", err)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(services); err != nil {
 			log.Errorf("Error marshalling: %v", err)
 		}
 	}))
@@ -63,7 +68,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 			http.Error(w, "serviceName required", http.StatusBadRequest)
 			return
 		}
-		if err := json.NewEncoder(w).Encode(store.SpanNames(serviceName)); err != nil {
+		spanNames, err := store.SpanNames(serviceName)
+		if err != nil {
+			log.Errorf("Store error: %v", err)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(spanNames); err != nil {
 			log.Errorf("Error marshalling: %v", err)
 		}
 	}))
@@ -75,7 +85,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 			return
 		}
 
-		trace := store.Trace(id)
+		trace, err := store.Trace(id)
+		if err != nil {
+			log.Errorf("Store error: %v", err)
+			return
+		}
+
 		if err := json.NewEncoder(w).Encode(SpansToWire(trace)); err != nil {
 			log.Errorf("Error marshalling: %v", err)
 		}
@@ -123,7 +138,12 @@ func Register(router *mux.Router, store *storage.SpanStore) {
 			SpanName:      values.Get("spanName"),
 			MinDurationUS: minDuration,
 		}
-		traces := store.Traces(query)
+		traces, err := store.Traces(query)
+		if err != nil {
+			log.Errorf("Store error: %v", err)
+			return
+		}
+
 		if err := json.NewEncoder(w).Encode(TracesToWire(traces)); err != nil {
 			log.Errorf("Error marshalling: %v", err)
 		}

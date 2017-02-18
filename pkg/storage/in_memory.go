@@ -16,6 +16,7 @@ type trace struct {
 }
 
 func (t *trace) match(query Query) bool {
+	minDuration := false
 	for _, span := range t.spans {
 		spanStartMS := span.GetTimestamp() / 1000
 		spanEndMS := (span.GetTimestamp() + span.GetDuration()) / 1000
@@ -28,6 +29,9 @@ func (t *trace) match(query Query) bool {
 
 		// Only one span needs to be of length MinDuration
 		minDuration = minDuration || span.GetDuration() >= query.MinDurationUS
+	}
+	if !minDuration {
+		return false
 	}
 
 	if query.ServiceName != "" {
@@ -142,7 +146,7 @@ func (s *inMemory) Append(span *zipkincore.Span) error {
 func (s *inMemory) garbageCollect() {
 	if len(s.traces) > inMemoryTraces {
 		// for now, just delete random 10%
-		toDelete := int(inMemoryTraces * 0.1)
+		toDelete := int(inMemoryTraces / 10)
 		for k := range s.traces {
 			toDelete--
 			if toDelete < 0 {

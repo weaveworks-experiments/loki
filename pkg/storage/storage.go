@@ -6,10 +6,14 @@ import (
 
 type SpanStore interface {
 	Append(*zipkincore.Span) error
+	ReadStore
+}
+
+type ReadStore interface {
 	Services() ([]string, error)
 	SpanNames(serviceName string) ([]string, error)
-	Trace(id int64) ([]*zipkincore.Span, error)
-	Traces(query Query) ([][]*zipkincore.Span, error)
+	Trace(id int64) (Trace, error)
+	Traces(query Query) ([]Trace, error)
 }
 
 type Query struct {

@@ -4,212 +4,104 @@ import (
 	"sort"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
-const inMemoryTraces = 1024 * 1024
-
-type trace struct {
-	minTimestamp int64
-	spans        []*zipkincore.Span
-}
-
-func (t *trace) match(query Query) bool {
-	minDuration := false
-	for _, span := range t.spans {
-		spanStartMS := span.GetTimestamp() / 1000
-		spanEndMS := (span.GetTimestamp() + span.GetDuration()) / 1000
-
-		// All spans must be within the time range
-		if spanEndMS < query.StartMS || spanStartMS > query.EndMS {
-			log.Infof("dropping span - %d < %d || %d > %d", spanEndMS, query.StartMS, spanStartMS, query.EndMS)
-			return false
-		}
-
-		// Only one span needs to be of length MinDuration
-		minDuration = minDuration || span.GetDuration() >= query.MinDurationUS
-	}
-	if !minDuration {
-		return false
-	}
-
-	if query.ServiceName != "" {
-		found := false
-	outerServiceName:
-		for _, span := range t.spans {
-			for _, annotation := range span.Annotations {
-				if annotation.IsSetHost() && annotation.GetHost().GetServiceName() == query.ServiceName {
-					found = true
-					break outerServiceName
-				}
-			}
-			for _, annotation := range span.BinaryAnnotations {
-				if annotation.IsSetHost() && annotation.GetHost().GetServiceName() == query.ServiceName {
-					found = true
-					break outerServiceName
-				}
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	if query.SpanName != "" && query.SpanName != "all" {
-		found := false
-	outerSpanName:
-		for _, span := range t.spans {
-			if span.GetName() == query.SpanName {
-				found = true
-				break outerSpanName
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	return true
-}
-
-type byMinTimestamp []*trace
-
-func (ts byMinTimestamp) Len() int           { return len(ts) }
-func (ts byMinTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
-func (ts byMinTimestamp) Less(i, j int) bool { return ts[i].minTimestamp < ts[j].minTimestamp }
-
-type byTimestamp []*zipkincore.Span
-
-func (ts byTimestamp) Len() int           { return len(ts) }
-func (ts byTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
-func (ts byTimestamp) Less(i, j int) bool { return ts[i].GetTimestamp() < ts[j].GetTimestamp() }
+const numImmutableBlocks = 1024
 
 func NewSpanStore() SpanStore {
 	return &inMemory{
-		traces:    map[int64]*trace{},
-		services:  map[string]struct{}{},
-		spanNames: map[string]map[string]struct{}{},
+		mutableBlock: newMutableBlock(),
 	}
 }
 
 type inMemory struct {
-	mtx       sync.RWMutex
-	traces    map[int64]*trace
-	services  map[string]struct{}
-	spanNames map[string]map[string]struct{}
+	mtx             sync.RWMutex
+	mutableBlock    *mutableBlock
+	immutableBlocks []*immutableBlock
 }
 
 func (s *inMemory) Append(span *zipkincore.Span) error {
+	var err error
+	s.mtx.RLock()
+	full := s.mutableBlock.Full()
+	if !full {
+		err = s.mutableBlock.Append(span)
+	}
+	s.mtx.RUnlock()
+
+	if !full {
+		return err
+	}
+
+	// mutableBlock was full, so swap it out for a new one
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	s.garbageCollect()
 
-	traceID := span.GetTraceID()
-
-	t, ok := s.traces[traceID]
-	if !ok {
-		t = &trace{}
+	s.immutableBlocks = append(s.immutableBlocks, newImmutableBlock(s.mutableBlock))
+	if len(s.immutableBlocks) > numImmutableBlocks {
+		s.immutableBlocks = s.immutableBlocks[1:]
 	}
+	s.mutableBlock = newMutableBlock()
+	return s.mutableBlock.Append(span)
+}
 
-	t.spans = append(t.spans, span)
-	sort.Sort(byTimestamp(t.spans))
-
-	if t.minTimestamp > span.GetTimestamp() {
-		t.minTimestamp = span.GetTimestamp()
+func (s *inMemory) stores(f func(ReadStore) error) error {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	if err := f(s.mutableBlock); err != nil {
+		return err
 	}
-
-	s.traces[traceID] = t
-
-	// update services 'index'
-	services := map[string]struct{}{}
-	for _, annotation := range span.Annotations {
-		s.services[annotation.Host.ServiceName] = struct{}{}
-		services[annotation.Host.ServiceName] = struct{}{}
-	}
-	for _, annotation := range span.BinaryAnnotations {
-		s.services[annotation.Host.ServiceName] = struct{}{}
-		services[annotation.Host.ServiceName] = struct{}{}
-	}
-
-	// update spanNames 'index'
-	for service := range services {
-		if _, ok := s.spanNames[service]; !ok {
-			s.spanNames[service] = map[string]struct{}{}
+	for _, b := range s.immutableBlocks {
+		if err := f(b); err != nil {
+			return err
 		}
-		s.spanNames[service][span.Name] = struct{}{}
 	}
-
 	return nil
 }
 
-func (s *inMemory) garbageCollect() {
-	if len(s.traces) > inMemoryTraces {
-		// for now, just delete random 10%
-		toDelete := int(inMemoryTraces / 10)
-		for k := range s.traces {
-			toDelete--
-			if toDelete < 0 {
-				return
-			}
-			delete(s.traces, k)
-		}
-	}
-}
-
 func (s *inMemory) Services() ([]string, error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
-	result := make([]string, 0, len(s.services))
-	for service := range s.services {
-		result = append(result, service)
-	}
-	return result, nil
+	var result [][]string
+	err := s.stores(func(s ReadStore) error {
+		services, err := s.Services()
+		sort.Strings(services)
+		result = append(result, services)
+		return err
+	})
+	return mergeStringListList(result), err
 }
 
 func (s *inMemory) SpanNames(serviceName string) ([]string, error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
-	names, ok := s.spanNames[serviceName]
-	if !ok {
-		return nil, nil
-	}
-	result := make([]string, 0, len(names))
-	for name := range names {
-		result = append(result, name)
-	}
-	return result, nil
+	var result [][]string
+	err := s.stores(func(s ReadStore) error {
+		names, err := s.SpanNames(serviceName)
+		sort.Strings(names)
+		result = append(result, names)
+		return err
+	})
+	return mergeStringListList(result), err
 }
 
-func (s *inMemory) Trace(id int64) ([]*zipkincore.Span, error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
-
-	trace, ok := s.traces[id]
-	if !ok {
-		return nil, nil
-	}
-	return trace.spans, nil
+func (s *inMemory) Trace(id int64) (Trace, error) {
+	var result []Trace
+	err := s.stores(func(s ReadStore) error {
+		trace, err := s.Trace(id)
+		result = append(result, trace)
+		return err
+	})
+	return mergeTraceList(result), err
 }
 
-func (s *inMemory) Traces(query Query) ([][]*zipkincore.Span, error) {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
-
-	traces := []*trace{}
-	for _, trace := range s.traces {
-		if trace.match(query) {
-			traces = append(traces, trace)
-		}
-	}
-	sort.Sort(sort.Reverse(byMinTimestamp(traces)))
+func (s *inMemory) Traces(query Query) ([]Trace, error) {
+	var result [][]Trace
+	err := s.stores(func(s ReadStore) error {
+		traces, err := s.Traces(query)
+		result = append(result, traces)
+		return err
+	})
+	traces := mergeTraceListList(result)
 	if query.Limit > 0 && len(traces) > query.Limit {
-		traces = traces[:query.Limit]
+		traces = traces[len(traces)-query.Limit:]
 	}
-
-	result := [][]*zipkincore.Span{}
-	for _, trace := range traces {
-		result = append(result, trace.spans)
-	}
-	return result, nil
+	return traces, err
 }

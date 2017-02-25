@@ -91,7 +91,7 @@ func Register(router *mux.Router, store storage.SpanStore) {
 			return
 		}
 
-		if err := json.NewEncoder(w).Encode(SpansToWire(trace)); err != nil {
+		if err := json.NewEncoder(w).Encode(SpansToWire(trace.Spans)); err != nil {
 			log.Errorf("Error marshalling: %v", err)
 		}
 	}))

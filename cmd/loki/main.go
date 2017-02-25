@@ -13,12 +13,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/retrieval"
-	"github.com/weaveworks/scope/common/middleware"
 
 	"github.com/weaveworks-experiments/loki/pkg/api"
 	"github.com/weaveworks-experiments/loki/pkg/scraper"
 	"github.com/weaveworks-experiments/loki/pkg/storage"
 	"github.com/weaveworks-experiments/loki/pkg/zipkin-ui"
+	"github.com/weaveworks/scope/common/middleware"
 )
 
 var (

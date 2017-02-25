@@ -9,6 +9,8 @@ import (
 	_ "unsafe" // For math.Float64frombits
 
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+
+	"github.com/weaveworks-experiments/loki/pkg/storage"
 )
 
 func fromIDStr(id string) (int64, error) {
@@ -143,10 +145,10 @@ func SpansToWire(spans []*zipkincore.Span) []interface{} {
 	return result
 }
 
-func TracesToWire(traces [][]*zipkincore.Span) [][]interface{} {
+func TracesToWire(traces []storage.Trace) [][]interface{} {
 	result := make([][]interface{}, 0, len(traces))
 	for _, trace := range traces {
-		result = append(result, SpansToWire(trace))
+		result = append(result, SpansToWire(trace.Spans))
 	}
 	return result
 }

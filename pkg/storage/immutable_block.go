@@ -1,12 +1,11 @@
 package storage
 
 import (
-	"math"
 	"sort"
 )
 
 type immutableBlock struct {
-	from, through int64 // in ms
+	//from, through int64 // in ms
 
 	traceIDs  map[int64]int
 	traces    []Trace // sorted by minTimestamp
@@ -15,11 +14,12 @@ type immutableBlock struct {
 }
 
 func newImmutableBlock(b *mutableBlock) *immutableBlock {
-	from, through := int64(math.MaxInt64), int64(0)
+	//from, through := int64(math.MaxInt64), int64(0)
+
 	traces := make([]Trace, 0, len(b.traces))
 	for _, trace := range b.traces {
-		from = min(from, trace.MinTimestamp)
-		through = max(through, trace.MinTimestamp)
+		//	from = min(from, trace.MinTimestamp)
+		//	through = max(through, trace.MinTimestamp)
 		traces = append(traces, *trace)
 	}
 
@@ -68,10 +68,6 @@ func (s *immutableBlock) Trace(id int64) (Trace, error) {
 }
 
 func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
-	if query.EndMS < s.from || query.StartMS > s.through {
-		return nil, nil
-	}
-
 	// the smallest index i in [0, n) at which f(i) is true
 	first := sort.Search(len(s.traces), func(i int) bool {
 		return s.traces[i].MinTimestamp >= query.StartMS
@@ -80,12 +76,8 @@ func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
 		return nil, nil
 	}
 
-	last := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MinTimestamp > query.EndMS
-	})
-
-	result := make([]Trace, 0, query.Limit)
-	for i := last - 1; i >= first && len(result) < query.Limit; i-- {
+	result := []Trace{}
+	for i := first; i < len(s.traces); i++ {
 		if s.traces[i].match(query) {
 			result = append(result, s.traces[i])
 		}

@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/retrieval"
 
+	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
 	"github.com/weaveworks-experiments/loki/pkg/api"
@@ -22,6 +23,10 @@ func main() {
 	serverConfig.RegisterFlags(flag.CommandLine)
 	configFile := flag.String("config.file", "loki.yml", "Loki configuration file name.")
 	flag.Parse()
+
+	if err := logging.Setup("info"); err != nil {
+		log.Fatal(err)
+	}
 
 	config, err := config.LoadFile(*configFile)
 	if err != nil {

@@ -27,7 +27,7 @@ func newMutableBlock() *mutableBlock {
 func (s *mutableBlock) Full() bool {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	return len(s.traces) >= mutableTraces
+	return len(s.traces) > mutableTraces
 }
 
 func (s *mutableBlock) Append(span *zipkincore.Span) error {
@@ -37,16 +37,11 @@ func (s *mutableBlock) Append(span *zipkincore.Span) error {
 	traceID := span.GetTraceID()
 
 	t, ok := s.traces[traceID]
-	if !ok {
-		t = &Trace{}
+	if ok {
+		t.addSpan(span)
+	} else {
+		t = newTrace(span)
 		s.traces[traceID] = t
-	}
-
-	t.Spans = append(t.Spans, span)
-	sort.Sort(byTimestamp(t.Spans))
-
-	if t.MinTimestamp > span.GetTimestamp() {
-		t.MinTimestamp = span.GetTimestamp()
 	}
 
 	// update services 'index'
@@ -117,7 +112,7 @@ func (s *mutableBlock) Traces(query Query) ([]Trace, error) {
 		}
 	}
 	sort.Sort(byMinTimestamp(traces))
-	if query.Limit > 0 && len(traces) > query.Limit {
+	if len(traces) > query.Limit {
 		traces = traces[len(traces)-query.Limit:]
 	}
 	return traces, nil

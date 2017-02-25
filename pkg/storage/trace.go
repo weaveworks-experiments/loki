@@ -1,32 +1,53 @@
 package storage
 
 import (
+	"sort"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
 type Trace struct {
 	ID           int64
-	MinTimestamp int64
+	MinTimestamp int64 // in microseconds
+	MaxTimestamp int64
 	Spans        []*zipkincore.Span
 }
 
-func (t *Trace) match(query Query) bool {
-	minDuration := false
-	for _, span := range t.Spans {
-		spanStartMS := span.GetTimestamp() / 1000
-		spanEndMS := (span.GetTimestamp() + span.GetDuration()) / 1000
-
-		// All spans must be within the time range
-		if spanEndMS < query.StartMS || spanStartMS > query.EndMS {
-			log.Infof("dropping span - %d < %d || %d > %d", spanEndMS, query.StartMS, spanStartMS, query.EndMS)
-			return false
-		}
-
-		// Only one span needs to be of length MinDuration
-		minDuration = minDuration || span.GetDuration() >= query.MinDurationUS
+func newTrace(span *zipkincore.Span) *Trace {
+	return &Trace{
+		ID:           span.GetTraceID(),
+		MinTimestamp: span.GetTimestamp(),
+		MaxTimestamp: span.GetTimestamp() + span.GetDuration(),
+		Spans:        []*zipkincore.Span{span},
 	}
-	if !minDuration {
+}
+
+func (t *Trace) addSpan(span *zipkincore.Span) {
+	t.Spans = append(t.Spans, span)
+	sort.Sort(byTimestamp(t.Spans))
+
+	if t.MinTimestamp > span.GetTimestamp() {
+		t.MinTimestamp = span.GetTimestamp()
+	}
+
+	spanMax := span.GetTimestamp() + span.GetDuration()
+	if t.MaxTimestamp < spanMax {
+		t.MaxTimestamp = spanMax
+	}
+}
+
+func (t *Trace) match(query Query) bool {
+	traceStartMS := t.MinTimestamp / 1000
+	traceEndMS := t.MaxTimestamp / 1000
+	if traceEndMS < query.StartMS || traceStartMS > query.EndMS {
+		log.Infof("dropping trace %d - out of time range (%d < %d || %d > %d)", t.ID, traceEndMS, query.StartMS, traceStartMS, query.EndMS)
+		return false
+	}
+
+	traceDuration := t.MaxTimestamp - t.MinTimestamp
+	if traceDuration < query.MinDurationUS {
+		log.Infof("dropping span %d - too short %d < %d", t.ID, traceDuration, query.MinDurationUS)
 		return false
 	}
 

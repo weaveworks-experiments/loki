@@ -4,6 +4,7 @@ import (
 	"sort"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
@@ -37,6 +38,8 @@ func (s *inMemory) Append(span *zipkincore.Span) error {
 	// mutableBlock was full, so swap it out for a new one
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
+
+	log.Infof("Mutable block full, promoting - %d immutable blocks", len(s.immutableBlocks))
 
 	s.immutableBlocks = append(s.immutableBlocks, newImmutableBlock(s.mutableBlock))
 	if len(s.immutableBlocks) > numImmutableBlocks {

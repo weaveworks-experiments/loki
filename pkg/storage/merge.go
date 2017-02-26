@@ -63,7 +63,7 @@ func mergeTraceList(input []Trace) Trace {
 
 	spans := []*zipkincore.Span{}
 	var minTimestamp int64 = math.MaxInt64
-	var maxTimestamp int64 = 0
+	var maxTimestamp int64
 	for _, trace := range input {
 		spans = append(spans, trace.Spans...)
 		if trace.MinTimestamp < minTimestamp {

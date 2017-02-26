@@ -50,7 +50,7 @@ func (s *scraper) Offset(interval time.Duration) time.Duration {
 }
 
 func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
-	log.Infof("Scraping %s", s.target.URL().String())
+
 	if err := s.scrape(ctx, ts); err != nil {
 		log.Errorf("Error scraping %s: %v", s.target.URL().String(), err)
 		return err
@@ -97,6 +97,7 @@ func (s *scraper) scrape(ctx context.Context, ts time.Time) error {
 		}
 	}
 
+	log.Infof("Scraping %s - %d spans", s.target.URL().String(), len(spans))
 	for _, span := range spans {
 
 		for _, annotation := range span.Annotations {

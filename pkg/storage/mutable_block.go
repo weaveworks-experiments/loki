@@ -6,8 +6,6 @@ import (
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
 )
 
-const mutableTraces = 1024
-
 type mutableBlock struct {
 	mtx       sync.RWMutex
 	traces    map[int64]*Trace
@@ -17,16 +15,23 @@ type mutableBlock struct {
 
 func newMutableBlock() *mutableBlock {
 	return &mutableBlock{
-		traces:    make(map[int64]*Trace, mutableTraces),
+		traces:    make(map[int64]*Trace, numMutableTraces),
 		services:  map[string]struct{}{},
 		spanNames: map[string]map[string]struct{}{},
 	}
 }
 
-func (s *mutableBlock) Full() bool {
+func (s *mutableBlock) Size() int {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	return len(s.traces) > mutableTraces
+	return len(s.traces)
+}
+
+func (s *mutableBlock) HasTrace(id int64) bool {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	_, ok := s.traces[id]
+	return ok
 }
 
 func (s *mutableBlock) Append(span *zipkincore.Span) error {
@@ -103,9 +108,10 @@ func (s *mutableBlock) Trace(id int64) (Trace, error) {
 func (s *mutableBlock) Traces(query Query) ([]Trace, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
+
 	traces := []Trace{}
 	for _, trace := range s.traces {
-		if trace.MinTimestamp >= query.StartMS && trace.MaxTimestamp <= query.StartMS {
+		if trace.MaxTimestamp >= (query.StartMS*1000) && trace.MinTimestamp < (query.EndMS*1000) {
 			traces = append(traces, *trace)
 		}
 	}

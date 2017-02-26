@@ -9,6 +9,7 @@ import (
 )
 
 const numImmutableBlocks = 1024
+const numMutableTraces = 1024
 
 func NewSpanStore() SpanStore {
 	return &inMemory{
@@ -25,13 +26,15 @@ type inMemory struct {
 func (s *inMemory) Append(span *zipkincore.Span) error {
 	var err error
 	s.mtx.RLock()
-	full := s.mutableBlock.Full()
-	if !full {
+	size := s.mutableBlock.Size()
+	hasTrace := s.mutableBlock.HasTrace(span.GetTraceID())
+	insertIntoMutableBlock := size < numMutableTraces || hasTrace
+	if insertIntoMutableBlock {
 		err = s.mutableBlock.Append(span)
 	}
 	s.mtx.RUnlock()
 
-	if !full {
+	if insertIntoMutableBlock {
 		return err
 	}
 
@@ -39,7 +42,7 @@ func (s *inMemory) Append(span *zipkincore.Span) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	log.Infof("Mutable block full, promoting - %d immutable blocks", len(s.immutableBlocks))
+	log.Infof("Mutable block full, promoting - %d mutable traces, %d immutable blocks", size, len(s.immutableBlocks))
 
 	s.immutableBlocks = append(s.immutableBlocks, newImmutableBlock(s.mutableBlock))
 	if len(s.immutableBlocks) > numImmutableBlocks {
@@ -107,7 +110,7 @@ func (s *inMemory) Traces(query Query) ([]Trace, error) {
 	}
 	traces := mergeTraceListList(result)
 	filtered := make([]Trace, 0, query.Limit)
-	for i := len(traces) - 1; i >= 0 && len(traces) > query.Limit; i-- {
+	for i := len(traces) - 1; i >= 0 && len(traces) < query.Limit; i-- {
 		if traces[i].match(query) {
 			filtered = append(filtered, traces[i])
 		}

@@ -70,13 +70,13 @@ func (s *immutableBlock) Trace(id int64) (Trace, error) {
 func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
 	// the smallest index i in [0, n) at which f(i) is true
 	first := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MinTimestamp >= query.StartMS
+		return s.traces[i].MinTimestamp >= (query.StartMS * 1000)
 	})
 	if first == len(s.traces) {
 		return nil, nil
 	}
 	last := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MaxTimestamp > query.EndMS
+		return s.traces[i].MaxTimestamp > (query.EndMS * 1000)
 	})
 	return s.traces[first:last], nil
 }

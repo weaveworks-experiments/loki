@@ -76,7 +76,7 @@ func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
 		return nil, nil
 	}
 	last := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MaxTimestamp > (query.EndMS * 1000)
+		return s.traces[i].MinTimestamp > (query.EndMS * 1000)
 	})
 	return s.traces[first:last], nil
 }

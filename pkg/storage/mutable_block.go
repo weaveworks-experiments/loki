@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"sort"
 	"sync"
 
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
@@ -104,16 +103,11 @@ func (s *mutableBlock) Trace(id int64) (Trace, error) {
 func (s *mutableBlock) Traces(query Query) ([]Trace, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-
 	traces := []Trace{}
 	for _, trace := range s.traces {
-		if trace.match(query) {
+		if trace.MinTimestamp >= query.StartMS && trace.MaxTimestamp <= query.StartMS {
 			traces = append(traces, *trace)
 		}
-	}
-	sort.Sort(byMinTimestamp(traces))
-	if len(traces) > query.Limit {
-		traces = traces[len(traces)-query.Limit:]
 	}
 	return traces, nil
 }

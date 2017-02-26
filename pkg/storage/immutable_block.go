@@ -75,13 +75,8 @@ func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
 	if first == len(s.traces) {
 		return nil, nil
 	}
-
-	result := []Trace{}
-	for i := first; i < len(s.traces); i++ {
-		if s.traces[i].match(query) {
-			result = append(result, s.traces[i])
-		}
-	}
-
-	return result, nil
+	last := sort.Search(len(s.traces), func(i int) bool {
+		return s.traces[i].MaxTimestamp > query.EndMS
+	})
+	return s.traces[first:last], nil
 }

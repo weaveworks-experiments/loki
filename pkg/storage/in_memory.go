@@ -102,9 +102,15 @@ func (s *inMemory) Traces(query Query) ([]Trace, error) {
 		result = append(result, traces)
 		return err
 	})
-	traces := mergeTraceListList(result)
-	if query.Limit > 0 && len(traces) > query.Limit {
-		traces = traces[len(traces)-query.Limit:]
+	if err != nil {
+		return nil, err
 	}
-	return traces, err
+	traces := mergeTraceListList(result)
+	filtered := make([]Trace, 0, query.Limit)
+	for i := len(traces) - 1; i >= 0 && len(traces) > query.Limit; i-- {
+		if traces[i].match(query) {
+			filtered = append(filtered, traces[i])
+		}
+	}
+	return filtered, nil
 }

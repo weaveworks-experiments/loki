@@ -87,13 +87,13 @@ func relabel(labels model.LabelSet, cfg *config.RelabelConfig) model.LabelSet {
 		}
 		labels = out
 	case config.RelabelLabelDrop:
-		for ln := range labels {
+		for ln, _ := range labels {
 			if cfg.Regex.MatchString(string(ln)) {
 				delete(labels, ln)
 			}
 		}
 	case config.RelabelLabelKeep:
-		for ln := range labels {
+		for ln, _ := range labels {
 			if !cfg.Regex.MatchString(string(ln)) {
 				delete(labels, ln)
 			}

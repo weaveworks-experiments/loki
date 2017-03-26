@@ -46,22 +46,39 @@ func NewPublicIPAddressesClientWithBaseURI(baseURI string, subscriptionID string
 	return PublicIPAddressesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a static or dynamic public IP address.
-// This method may poll for completion. Polling can be canceled by passing
-// the cancel channel argument. The channel will be used to cancel polling
-// and any outstanding HTTP requests.
+// CreateOrUpdate the Put PublicIPAddress operation creates/updates a
+// stable/dynamic PublicIP address This method may poll for completion.
+// Polling can be canceled by passing the cancel channel argument. The
+// channel will be used to cancel polling and any outstanding HTTP requests.
 //
 // resourceGroupName is the name of the resource group. publicIPAddressName is
-// the name of the public IP address. parameters is parameters supplied to
-// the create or update public IP address operation.
+// the name of the publicIpAddress. parameters is parameters supplied to the
+// create/update PublicIPAddress operation
 func (client PublicIPAddressesClient) CreateOrUpdate(resourceGroupName string, publicIPAddressName string, parameters PublicIPAddress, cancel <-chan struct{}) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.PublicIPAddressPropertiesFormat", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.PublicIPAddressPropertiesFormat.IPConfiguration", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.PublicIPAddressPropertiesFormat.IPConfiguration.IPConfigurationPropertiesFormat.PublicIPAddress", Name: validation.Null, Rule: false, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.NetworkSecurityGroup", Name: validation.Null, Rule: false,
+									Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.NetworkSecurityGroup.Properties", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.NetworkSecurityGroup.Properties.NetworkInterfaces", Name: validation.ReadOnly, Rule: true, Chain: nil},
+											{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.NetworkSecurityGroup.Properties.Subnets", Name: validation.ReadOnly, Rule: true, Chain: nil},
+										}},
+									}},
+									{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.RouteTable", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.RouteTable.Properties", Name: validation.Null, Rule: false,
+											Chain: []validation.Constraint{{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.RouteTable.Properties.Subnets", Name: validation.ReadOnly, Rule: true, Chain: nil}}},
+										}},
+									{Target: "parameters.Properties.IPConfiguration.Properties.Subnet.Properties.IPConfigurations", Name: validation.ReadOnly, Rule: true, Chain: nil},
+								}},
+							}},
+							{Target: "parameters.Properties.IPConfiguration.Properties.PublicIPAddress", Name: validation.Null, Rule: false, Chain: nil},
+						}},
 					}},
+					{Target: "parameters.Properties.IPConfiguration", Name: validation.ReadOnly, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewErrorWithValidationError(err, "network.PublicIPAddressesClient", "CreateOrUpdate")
 	}
@@ -127,10 +144,10 @@ func (client PublicIPAddressesClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
-// Delete deletes the specified public IP address. This method may poll for
-// completion. Polling can be canceled by passing the cancel channel
-// argument. The channel will be used to cancel polling and any outstanding
-// HTTP requests.
+// Delete the delete publicIpAddress operation deletes the specified
+// publicIpAddress. This method may poll for completion. Polling can be
+// canceled by passing the cancel channel argument. The channel will be used
+// to cancel polling and any outstanding HTTP requests.
 //
 // resourceGroupName is the name of the resource group. publicIPAddressName is
 // the name of the subnet.
@@ -194,10 +211,11 @@ func (client PublicIPAddressesClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Get gets the specified public IP address in a specified resource group.
+// Get the Get publicIpAddress operation retrieves information about the
+// specified pubicIpAddress
 //
 // resourceGroupName is the name of the resource group. publicIPAddressName is
-// the name of the subnet. expand is expands referenced resources.
+// the name of the subnet. expand is expand references resources.
 func (client PublicIPAddressesClient) Get(resourceGroupName string, publicIPAddressName string, expand string) (result PublicIPAddress, err error) {
 	req, err := client.GetPreparer(resourceGroupName, publicIPAddressName, expand)
 	if err != nil {
@@ -260,7 +278,8 @@ func (client PublicIPAddressesClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// List gets all public IP addresses in a resource group.
+// List the List publicIpAddress operation retrieves all the publicIpAddresses
+// in a resource group.
 //
 // resourceGroupName is the name of the resource group.
 func (client PublicIPAddressesClient) List(resourceGroupName string) (result PublicIPAddressListResult, err error) {
@@ -345,7 +364,8 @@ func (client PublicIPAddressesClient) ListNextResults(lastResults PublicIPAddres
 	return
 }
 
-// ListAll gets all the public IP addresses in a subscription.
+// ListAll the List publicIpAddress operation retrieves all the
+// publicIpAddresses in a subscription.
 func (client PublicIPAddressesClient) ListAll() (result PublicIPAddressListResult, err error) {
 	req, err := client.ListAllPreparer()
 	if err != nil {

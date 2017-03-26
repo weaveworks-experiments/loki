@@ -24,7 +24,7 @@ type Appender interface {
 }
 
 func NewScraperFn(appender Appender) retrieval.ScraperFn {
-	return func(target *retrieval.Target, cfg *config.ScrapeConfig, client *http.Client) retrieval.Scraper {
+	return func(target *retrieval.Target, client *http.Client, _ model.LabelSet, cfg *config.ScrapeConfig) retrieval.Scraper {
 		return &scraper{
 			appender: appender,
 			target:   target,
@@ -49,16 +49,15 @@ func (s *scraper) Offset(interval time.Duration) time.Duration {
 	return interval
 }
 
-func (s *scraper) Scrape(ctx context.Context, ts time.Time) error {
-
-	if err := s.scrape(ctx, ts); err != nil {
+func (s *scraper) Scrape(ctx context.Context) error {
+	if err := s.scrape(ctx); err != nil {
 		log.Errorf("Error scraping %s: %v", s.target.URL().String(), err)
 		return err
 	}
 	return nil
 }
 
-func (s *scraper) scrape(ctx context.Context, ts time.Time) error {
+func (s *scraper) scrape(ctx context.Context) error {
 	req, err := http.NewRequest("GET", s.target.URL().String(), nil)
 	if err != nil {
 		log.Errorf("1: %v", err)

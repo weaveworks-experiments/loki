@@ -1,5 +1,5 @@
 {
-    "memo": "ea9cdc8aa6593a9508c284ff85cda07d3a110bfbe541dc5d64444fb4b7d92839",
+    "memo": "79d93ca7f69df15a00f71f3c5d627fb8e1d2bf67bb293d3ba3e4a741d0e25a92",
     "projects": [
         {
             "name": "cloud.google.com/go",
@@ -12,8 +12,7 @@
         },
         {
             "name": "github.com/Azure/azure-sdk-for-go",
-            "version": "v8.1.1-beta",
-            "revision": "4897648e310020dae650a89c31ff633284c13a24",
+            "revision": "bd73d950fa4440dae889bd9917bff7cef539f86e",
             "packages": [
                 "arm/compute",
                 "arm/network"
@@ -568,8 +567,9 @@
         },
         {
             "name": "github.com/prometheus/prometheus",
-            "branch": "master",
-            "revision": "6dbd77909961875ac99e13193dc9693963d07540",
+            "branch": "scrape-callback",
+            "revision": "ca5881ea9449da406b7798027a2c2c11af7eef5e",
+            "repo": "github.com/tomwilkie/prometheus",
             "packages": [
                 "config",
                 "discovery",
@@ -683,8 +683,8 @@
         },
         {
             "name": "github.com/willf/bitset",
-            "version": "v1.0.0",
-            "revision": "3582df120789e0e260108c11fd01775b30782fa7",
+            "branch": "master",
+            "revision": "5c3c0fce48842b2c0bbaa99b4e61b0175d84b47c",
             "packages": [
                 "."
             ]

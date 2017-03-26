@@ -46,22 +46,23 @@ func NewSecurityRulesClientWithBaseURI(baseURI string, subscriptionID string) Se
 	return SecurityRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a security rule in the specified network
-// security group. This method may poll for completion. Polling can be
-// canceled by passing the cancel channel argument. The channel will be used
-// to cancel polling and any outstanding HTTP requests.
+// CreateOrUpdate the Put network security rule operation creates/updates a
+// security rule in the specified network security group This method may poll
+// for completion. Polling can be canceled by passing the cancel channel
+// argument. The channel will be used to cancel polling and any outstanding
+// HTTP requests.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.
 // securityRuleName is the name of the security rule. securityRuleParameters
-// is parameters supplied to the create or update network security rule
-// operation.
+// is parameters supplied to the create/update network security rule
+// operation
 func (client SecurityRulesClient) CreateOrUpdate(resourceGroupName string, networkSecurityGroupName string, securityRuleName string, securityRuleParameters SecurityRule, cancel <-chan struct{}) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: securityRuleParameters,
-			Constraints: []validation.Constraint{{Target: "securityRuleParameters.SecurityRulePropertiesFormat", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "securityRuleParameters.SecurityRulePropertiesFormat.SourceAddressPrefix", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "securityRuleParameters.SecurityRulePropertiesFormat.DestinationAddressPrefix", Name: validation.Null, Rule: true, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "securityRuleParameters.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "securityRuleParameters.Properties.SourceAddressPrefix", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "securityRuleParameters.Properties.DestinationAddressPrefix", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewErrorWithValidationError(err, "network.SecurityRulesClient", "CreateOrUpdate")
 	}
@@ -128,10 +129,10 @@ func (client SecurityRulesClient) CreateOrUpdateResponder(resp *http.Response) (
 	return
 }
 
-// Delete deletes the specified network security rule. This method may poll
-// for completion. Polling can be canceled by passing the cancel channel
-// argument. The channel will be used to cancel polling and any outstanding
-// HTTP requests.
+// Delete the delete network security rule operation deletes the specified
+// network security rule. This method may poll for completion. Polling can be
+// canceled by passing the cancel channel argument. The channel will be used
+// to cancel polling and any outstanding HTTP requests.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.
@@ -197,7 +198,8 @@ func (client SecurityRulesClient) DeleteResponder(resp *http.Response) (result a
 	return
 }
 
-// Get get the specified network security rule.
+// Get the Get NetworkSecurityRule operation retrieves information about the
+// specified network security rule.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.
@@ -262,7 +264,8 @@ func (client SecurityRulesClient) GetResponder(resp *http.Response) (result Secu
 	return
 }
 
-// List gets all security rules in a network security group.
+// List the List network security rule operation retrieves all the security
+// rules in a network security group.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.

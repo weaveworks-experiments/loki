@@ -19,8 +19,8 @@ with the release of the Azure Resource Manager (ARM)
 packages, is transitioning to a generated-code model. Other Azure SDKs, notably the
 [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net), have successfully adopted a
 generated-code strategy. Recently, Microsoft published the
-[AutoRest](https://github.com/Azure/autorest) tool used to create these SDKs and we have been adding support for Go. The ARM packages are
-the first set generated using this new toolchain. The input for AutoRest are the [Azure REST API specs](https://github.com/Azure/azure-rest-api-specs), files in Swagger JSON format.
+[Autorest](https://github.com/Azure/autorest) tool used to create these SDKs and we have been adding support for Go. The ARM packages are
+the first set generated using this new toolchain.
 
 There are a couple of items to note. First, since both the tooling and the underlying support
 packages are new, the code is not yet "production ready". Treat these packages as of
@@ -57,15 +57,6 @@ fan-in set ups.
 These are best shown in a series of examples, all of which are included in the
 [examples](/arm/examples) sub-folder.
 
-## How is the SDK tested?
-
-Testing the SDK is currently a work in progress. It includes three different points:
-
-* Test the [Azure REST API specs](https://github.com/Azure/azure-rest-api-specs) against the APIs themselves. This way we can find if the specs are reflecting correctly the API behavior. All Azure SDKs can benefit from this tests.
-* Add [acceptance tests](https://github.com/Azure/autorest/blob/master/docs/developer/guide/writing-tests.md) to AutoRest.
-* Test the generated SDK with code samples. This would catch bugs that escaped the previous tests, and provide some documentation.
-
-
 ## First a Sidenote: Authentication and the Azure Resource Manager
 
 Before using the Azure Resource Manager packages, you need to understand how it authenticates and
@@ -73,11 +64,7 @@ authorizes requests.
 Azure Resource Manager requests can be authorized through [OAuth2](http://oauth.net). While OAuth2 provides many advantages over
 certificates, programmatic use, such as for scripts on headless servers, requires understanding and
 creating one or more *Service Principals.*
-
-The Azure-SDK-for-Node has an excellent tutorial that includes instructions for how to create Service Principals in the Portal and using the Azure CLI, both of which are applicable to Go.
-Find that documentation here: [Authenticaion, Azure/azure-sdk-for-node](https://github.com/Azure/azure-sdk-for-node/blob/master/Documentation/Authentication.md)
-
-In addition, there are several good blog posts, such as
+There are several good blog posts, such as
 [Automating Azure on your CI server using a Service Principal](http://blog.davidebbo.com/2014/12/azure-service-principal.html)
 and
 [Microsoft Azure REST API + OAuth 2.0](https://ahmetalpbalkan.com/blog/azure-rest-api-with-oauth2/),
@@ -156,7 +143,7 @@ Complete source code for this example can be found in [check.go](/arm/examples/c
 2. Get your Azure Subscription ID using either of the methods mentioned below:
   - Get it through the [portal](portal.azure.com) in the subscriptions section.
   - Get it using the [Azure CLI](https://azure.microsoft.com/documentation/articles/xplat-cli-install/) with command `azure account show`.
-  - Get it using [Azure Powershell](https://azure.microsoft.com/documentation/articles/powershell-install-configure/) with cmdlet `Get-AzureRmSubscription`.
+  - Get it using [Azure Powershell](https://azure.microsoft.com/documentation/articles/powershell-install-configure/) whit cmdlet `Get-AzureRmSubscription`.
 3. Set environment variables `AZURE_TENANT_ID = <TENANT_ID>`, `AZURE_CLIENT_ID = <CLIENT_ID>`, `AZURE_CLIENT_SECRET = <CLIENT_SECRET>` and `AZURE_SUBSCRIPTION_ID = <SUBSCRIPTION_ID>`.
 4. Run the sample with commands:
 
@@ -215,7 +202,7 @@ More details, including deleting the created account, are in the example code fi
 2. Get your Azure Subscription ID using either of the methods mentioned below:
   - Get it through the [portal](portal.azure.com) in the subscriptions section.
   - Get it using the [Azure CLI](https://azure.microsoft.com/documentation/articles/xplat-cli-install/) with command `azure account show`.
-  - Get it using [Azure Powershell](https://azure.microsoft.com/documentation/articles/powershell-install-configure/) with cmdlet `Get-AzureRmSubscription`.
+  - Get it using [Azure Powershell](https://azure.microsoft.com/documentation/articles/powershell-install-configure/) whit cmdlet `Get-AzureRmSubscription`.
 3. Set environment variables `AZURE_TENANT_ID = <TENANT_ID>`, `AZURE_CLIENT_ID = <CLIENT_ID>`, `AZURE_CLIENT_SECRET = <CLIENT_SECRET>` and `AZURE_SUBSCRIPTION_ID = <SUBSCRIPTION_ID>`.
 4. Create a resource group and add its name in the first line of the main function.
 5. Run the example with commands:

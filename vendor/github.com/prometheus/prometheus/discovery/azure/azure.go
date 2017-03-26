@@ -60,17 +60,17 @@ func init() {
 	prometheus.MustRegister(azureSDRefreshFailuresCount)
 }
 
-// Discovery periodically performs Azure-SD requests. It implements
+// AzureDiscovery periodically performs Azure-SD requests. It implements
 // the TargetProvider interface.
-type Discovery struct {
+type AzureDiscovery struct {
 	cfg      *config.AzureSDConfig
 	interval time.Duration
 	port     int
 }
 
 // NewDiscovery returns a new AzureDiscovery which periodically refreshes its targets.
-func NewDiscovery(cfg *config.AzureSDConfig) *Discovery {
-	return &Discovery{
+func NewDiscovery(cfg *config.AzureSDConfig) *AzureDiscovery {
+	return &AzureDiscovery{
 		cfg:      cfg,
 		interval: time.Duration(cfg.RefreshInterval),
 		port:     cfg.Port,
@@ -78,8 +78,8 @@ func NewDiscovery(cfg *config.AzureSDConfig) *Discovery {
 }
 
 // Run implements the TargetProvider interface.
-func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
-	ticker := time.NewTicker(d.interval)
+func (ad *AzureDiscovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
+	ticker := time.NewTicker(ad.interval)
 	defer ticker.Stop()
 
 	for {
@@ -89,7 +89,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 		default:
 		}
 
-		tg, err := d.refresh()
+		tg, err := ad.refresh()
 		if err != nil {
 			log.Errorf("unable to refresh during Azure discovery: %s", err)
 		} else {
@@ -156,7 +156,7 @@ func newAzureResourceFromID(id string) (azureResource, error) {
 	}, nil
 }
 
-func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
+func (ad *AzureDiscovery) refresh() (tg *config.TargetGroup, err error) {
 	t0 := time.Now()
 	defer func() {
 		azureSDRefreshDuration.Observe(time.Since(t0).Seconds())
@@ -165,7 +165,7 @@ func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
 		}
 	}()
 	tg = &config.TargetGroup{}
-	client, err := createAzureClient(*d.cfg)
+	client, err := createAzureClient(*ad.cfg)
 	if err != nil {
 		return tg, fmt.Errorf("could not create Azure client: %s", err)
 	}
@@ -246,7 +246,7 @@ func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
 					for _, ip := range *networkInterface.Properties.IPConfigurations {
 						if ip.Properties.PrivateIPAddress != nil {
 							labels[azureLabelMachinePrivateIP] = model.LabelValue(*ip.Properties.PrivateIPAddress)
-							address := net.JoinHostPort(*ip.Properties.PrivateIPAddress, fmt.Sprintf("%d", d.port))
+							address := net.JoinHostPort(*ip.Properties.PrivateIPAddress, fmt.Sprintf("%d", ad.port))
 							labels[model.AddressLabel] = model.LabelValue(address)
 							ch <- target{labelSet: labels, err: nil}
 							return

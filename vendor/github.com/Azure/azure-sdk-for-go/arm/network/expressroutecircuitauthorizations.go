@@ -45,15 +45,16 @@ func NewExpressRouteCircuitAuthorizationsClientWithBaseURI(baseURI string, subsc
 	return ExpressRouteCircuitAuthorizationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates an authorization in the specified express
-// route circuit. This method may poll for completion. Polling can be
-// canceled by passing the cancel channel argument. The channel will be used
-// to cancel polling and any outstanding HTTP requests.
+// CreateOrUpdate the Put Authorization operation creates/updates an
+// authorization in the specified ExpressRouteCircuits This method may poll
+// for completion. Polling can be canceled by passing the cancel channel
+// argument. The channel will be used to cancel polling and any outstanding
+// HTTP requests.
 //
 // resourceGroupName is the name of the resource group. circuitName is the
 // name of the express route circuit. authorizationName is the name of the
 // authorization. authorizationParameters is parameters supplied to the
-// create or update express route circuit authorization operation.
+// create/update ExpressRouteCircuitAuthorization operation
 func (client ExpressRouteCircuitAuthorizationsClient) CreateOrUpdate(resourceGroupName string, circuitName string, authorizationName string, authorizationParameters ExpressRouteCircuitAuthorization, cancel <-chan struct{}) (result autorest.Response, err error) {
 	req, err := client.CreateOrUpdatePreparer(resourceGroupName, circuitName, authorizationName, authorizationParameters, cancel)
 	if err != nil {
@@ -117,10 +118,11 @@ func (client ExpressRouteCircuitAuthorizationsClient) CreateOrUpdateResponder(re
 	return
 }
 
-// Delete deletes the specified authorization from the specified express route
-// circuit. This method may poll for completion. Polling can be canceled by
-// passing the cancel channel argument. The channel will be used to cancel
-// polling and any outstanding HTTP requests.
+// Delete the delete authorization operation deletes the specified
+// authorization from the specified ExpressRouteCircuit. This method may poll
+// for completion. Polling can be canceled by passing the cancel channel
+// argument. The channel will be used to cancel polling and any outstanding
+// HTTP requests.
 //
 // resourceGroupName is the name of the resource group. circuitName is the
 // name of the express route circuit. authorizationName is the name of the
@@ -186,8 +188,8 @@ func (client ExpressRouteCircuitAuthorizationsClient) DeleteResponder(resp *http
 	return
 }
 
-// Get gets the specified authorization from the specified express route
-// circuit.
+// Get the GET authorization operation retrieves the specified authorization
+// from the specified ExpressRouteCircuit.
 //
 // resourceGroupName is the name of the resource group. circuitName is the
 // name of the express route circuit. authorizationName is the name of the
@@ -252,7 +254,8 @@ func (client ExpressRouteCircuitAuthorizationsClient) GetResponder(resp *http.Re
 	return
 }
 
-// List gets all authorizations in an express route circuit.
+// List the List authorization operation retrieves all the authorizations in
+// an ExpressRouteCircuit.
 //
 // resourceGroupName is the name of the resource group. circuitName is the
 // name of the circuit.

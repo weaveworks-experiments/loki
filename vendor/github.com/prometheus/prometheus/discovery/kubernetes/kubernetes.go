@@ -59,9 +59,9 @@ func init() {
 	}
 }
 
-// Discovery implements the TargetProvider interface for discovering
+// Kubernetes implements the TargetProvider interface for discovering
 // targets from Kubernetes.
-type Discovery struct {
+type Kubernetes struct {
 	client kubernetes.Interface
 	role   config.KubernetesRole
 	logger log.Logger
@@ -76,7 +76,7 @@ func init() {
 }
 
 // New creates a new Kubernetes discovery for the given role.
-func New(l log.Logger, conf *config.KubernetesSDConfig) (*Discovery, error) {
+func New(l log.Logger, conf *config.KubernetesSDConfig) (*Kubernetes, error) {
 	var (
 		kcfg *rest.Config
 		err  error
@@ -136,7 +136,7 @@ func New(l log.Logger, conf *config.KubernetesSDConfig) (*Discovery, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Discovery{
+	return &Kubernetes{
 		client: c,
 		logger: l,
 		role:   conf.Role,
@@ -146,16 +146,16 @@ func New(l log.Logger, conf *config.KubernetesSDConfig) (*Discovery, error) {
 const resyncPeriod = 10 * time.Minute
 
 // Run implements the TargetProvider interface.
-func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
-	rclient := d.client.Core().GetRESTClient()
+func (k *Kubernetes) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
+	rclient := k.client.Core().GetRESTClient()
 
-	switch d.role {
+	switch k.role {
 	case "endpoints":
 		elw := cache.NewListWatchFromClient(rclient, "endpoints", api.NamespaceAll, nil)
 		slw := cache.NewListWatchFromClient(rclient, "services", api.NamespaceAll, nil)
 		plw := cache.NewListWatchFromClient(rclient, "pods", api.NamespaceAll, nil)
 		eps := NewEndpoints(
-			d.logger.With("kubernetes_sd", "endpoint"),
+			k.logger.With("kubernetes_sd", "endpoint"),
 			cache.NewSharedInformer(slw, &apiv1.Service{}, resyncPeriod),
 			cache.NewSharedInformer(elw, &apiv1.Endpoints{}, resyncPeriod),
 			cache.NewSharedInformer(plw, &apiv1.Pod{}, resyncPeriod),
@@ -178,7 +178,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	case "pod":
 		plw := cache.NewListWatchFromClient(rclient, "pods", api.NamespaceAll, nil)
 		pod := NewPod(
-			d.logger.With("kubernetes_sd", "pod"),
+			k.logger.With("kubernetes_sd", "pod"),
 			cache.NewSharedInformer(plw, &apiv1.Pod{}, resyncPeriod),
 		)
 		go pod.informer.Run(ctx.Done())
@@ -191,7 +191,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	case "service":
 		slw := cache.NewListWatchFromClient(rclient, "services", api.NamespaceAll, nil)
 		svc := NewService(
-			d.logger.With("kubernetes_sd", "service"),
+			k.logger.With("kubernetes_sd", "service"),
 			cache.NewSharedInformer(slw, &apiv1.Service{}, resyncPeriod),
 		)
 		go svc.informer.Run(ctx.Done())
@@ -204,7 +204,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	case "node":
 		nlw := cache.NewListWatchFromClient(rclient, "nodes", api.NamespaceAll, nil)
 		node := NewNode(
-			d.logger.With("kubernetes_sd", "node"),
+			k.logger.With("kubernetes_sd", "node"),
 			cache.NewSharedInformer(nlw, &apiv1.Node{}, resyncPeriod),
 		)
 		go node.informer.Run(ctx.Done())
@@ -215,7 +215,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 		node.Run(ctx, ch)
 
 	default:
-		d.logger.Errorf("unknown Kubernetes discovery kind %q", d.role)
+		k.logger.Errorf("unknown Kubernetes discovery kind %q", k.role)
 	}
 
 	<-ctx.Done()

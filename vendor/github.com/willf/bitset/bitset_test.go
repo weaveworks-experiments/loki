@@ -7,11 +7,24 @@
 package bitset
 
 import (
+	"encoding"
 	"encoding/json"
+	"fmt"
 	"math"
 	"math/rand"
 	"testing"
 )
+
+func TestStringer(t *testing.T) {
+	v := New(0)
+	for i := uint(0); i < 10; i++ {
+		v.Set(i)
+	}
+	if v.String() != "{0,1,2,3,4,5,6,7,8,9}" {
+		t.Error("bad string output")
+	}
+	fmt.Println(v)
+}
 
 func TestEmptyBitSet(t *testing.T) {
 	defer func() {
@@ -94,6 +107,46 @@ func TestBitSetAndGet(t *testing.T) {
 	v.Set(100)
 	if v.Test(100) != true {
 		t.Errorf("Bit %d is clear, and it shouldn't be.", 100)
+	}
+}
+
+func TestNextClear(t *testing.T) {
+	v := New(1000)
+	v.Set(0).Set(1)
+	next, found := v.NextClear(0)
+	if !found || next != 2 {
+		t.Errorf("Found next clear bit as %d, it should have been 2", next)
+	}
+
+	v = New(1000)
+	for i := uint(0); i < 66; i++ {
+		v.Set(i)
+	}
+	next, found = v.NextClear(0)
+	if !found || next != 66 {
+		t.Errorf("Found next clear bit as %d, it should have been 66", next)
+	}
+
+	v = New(1000)
+	for i := uint(0); i < 64; i++ {
+		v.Set(i)
+	}
+	v.Clear(45)
+	v.Clear(52)
+	next, found = v.NextClear(10)
+	if !found || next != 45 {
+		t.Errorf("Found next clear bit as %d, it should have been 45", next)
+	}
+
+	v = New(1000)
+	for i := uint(0); i < 128; i++ {
+		v.Set(i)
+	}
+	v.Clear(73)
+	v.Clear(99)
+	next, found = v.NextClear(10)
+	if !found || next != 73 {
+		t.Errorf("Found next clear bit as %d, it should have been 73", next)
 	}
 }
 
@@ -218,7 +271,7 @@ func TestCount2(t *testing.T) {
 
 // nil tests
 func TestNullTest(t *testing.T) {
-	var v *BitSet = nil
+	var v *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Checking bit of null reference should have caused a panic")
@@ -228,7 +281,7 @@ func TestNullTest(t *testing.T) {
 }
 
 func TestNullSet(t *testing.T) {
-	var v *BitSet = nil
+	var v *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Setting bit of null reference should have caused a panic")
@@ -238,7 +291,7 @@ func TestNullSet(t *testing.T) {
 }
 
 func TestNullClear(t *testing.T) {
-	var v *BitSet = nil
+	var v *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Clearning bit of null reference should have caused a panic")
@@ -248,7 +301,7 @@ func TestNullClear(t *testing.T) {
 }
 
 func TestNullCount(t *testing.T) {
-	var v *BitSet = nil
+	var v *BitSet
 	defer func() {
 		if r := recover(); r != nil {
 			t.Error("Counting null reference should not have caused a panic")
@@ -261,7 +314,7 @@ func TestNullCount(t *testing.T) {
 }
 
 func TestPanicDifferenceBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	var compare = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -272,7 +325,7 @@ func TestPanicDifferenceBNil(t *testing.T) {
 }
 
 func TestPanicDifferenceCompareNil(t *testing.T) {
-	var compare *BitSet = nil
+	var compare *BitSet
 	var b = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -283,7 +336,7 @@ func TestPanicDifferenceCompareNil(t *testing.T) {
 }
 
 func TestPanicUnionBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	var compare = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -294,7 +347,7 @@ func TestPanicUnionBNil(t *testing.T) {
 }
 
 func TestPanicUnionCompareNil(t *testing.T) {
-	var compare *BitSet = nil
+	var compare *BitSet
 	var b = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -305,7 +358,7 @@ func TestPanicUnionCompareNil(t *testing.T) {
 }
 
 func TestPanicIntersectionBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	var compare = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -316,7 +369,7 @@ func TestPanicIntersectionBNil(t *testing.T) {
 }
 
 func TestPanicIntersectionCompareNil(t *testing.T) {
-	var compare *BitSet = nil
+	var compare *BitSet
 	var b = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -327,7 +380,7 @@ func TestPanicIntersectionCompareNil(t *testing.T) {
 }
 
 func TestPanicSymmetricDifferenceBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	var compare = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -338,7 +391,7 @@ func TestPanicSymmetricDifferenceBNil(t *testing.T) {
 }
 
 func TestPanicSymmetricDifferenceCompareNil(t *testing.T) {
-	var compare *BitSet = nil
+	var compare *BitSet
 	var b = New(10)
 	defer func() {
 		if r := recover(); r == nil {
@@ -349,7 +402,7 @@ func TestPanicSymmetricDifferenceCompareNil(t *testing.T) {
 }
 
 func TestPanicComplementBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Nil should should have caused a panic")
@@ -359,7 +412,7 @@ func TestPanicComplementBNil(t *testing.T) {
 }
 
 func TestPanicAnytBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Nil should should have caused a panic")
@@ -369,7 +422,7 @@ func TestPanicAnytBNil(t *testing.T) {
 }
 
 func TestPanicNonetBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Nil should should have caused a panic")
@@ -379,13 +432,57 @@ func TestPanicNonetBNil(t *testing.T) {
 }
 
 func TestPanicAlltBNil(t *testing.T) {
-	var b *BitSet = nil
+	var b *BitSet
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Nil should should have caused a panic")
 		}
 	}()
 	b.All()
+}
+
+func TestAll(t *testing.T) {
+	v := New(0)
+	if !v.All() {
+		t.Error("Empty sets should return true on All()")
+	}
+	v = New(2)
+	v.SetTo(0, true)
+	v.SetTo(1, true)
+	if !v.All() {
+		t.Error("Non-empty sets with all bits set should return true on All()")
+	}
+	v = New(2)
+	if v.All() {
+		t.Error("Non-empty sets with no bits set should return false on All()")
+	}
+	v = New(2)
+	v.SetTo(0, true)
+	if v.All() {
+		t.Error("Non-empty sets with some bits set should return false on All()")
+	}
+}
+
+func TestNone(t *testing.T) {
+	v := New(0)
+	if !v.None() {
+		t.Error("Empty sets should return true on None()")
+	}
+	v = New(2)
+	v.SetTo(0, true)
+	v.SetTo(1, true)
+	if v.None() {
+		t.Error("Non-empty sets with all bits set should return false on None()")
+	}
+	v = New(2)
+	if !v.None() {
+		t.Error("Non-empty sets with no bits set should return true on None()")
+	}
+	v = New(2)
+	v.SetTo(0, true)
+	if v.None() {
+		t.Error("Non-empty sets with some bits set should return false on None()")
+	}
 }
 
 func TestEqual(t *testing.T) {
@@ -637,6 +734,63 @@ func TestComplement(t *testing.T) {
 	}
 }
 
+func TestIsSuperSet(t *testing.T) {
+	a := New(500)
+	b := New(300)
+	c := New(200)
+
+	// Setup bitsets
+	// a and b overlap
+	// only c is (strict) super set
+	for i := uint(0); i < 100; i++ {
+		a.Set(i)
+	}
+	for i := uint(50); i < 150; i++ {
+		b.Set(i)
+	}
+	for i := uint(0); i < 200; i++ {
+		c.Set(i)
+	}
+
+	if a.IsSuperSet(b) == true {
+		t.Errorf("IsSuperSet fails")
+	}
+	if a.IsSuperSet(c) == true {
+		t.Errorf("IsSuperSet fails")
+	}
+	if b.IsSuperSet(a) == true {
+		t.Errorf("IsSuperSet fails")
+	}
+	if b.IsSuperSet(c) == true {
+		t.Errorf("IsSuperSet fails")
+	}
+	if c.IsSuperSet(a) != true {
+		t.Errorf("IsSuperSet fails")
+	}
+	if c.IsSuperSet(b) != true {
+		t.Errorf("IsSuperSet fails")
+	}
+
+	if a.IsStrictSuperSet(b) == true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+	if a.IsStrictSuperSet(c) == true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+	if b.IsStrictSuperSet(a) == true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+	if b.IsStrictSuperSet(c) == true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+	if c.IsStrictSuperSet(a) != true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+	if c.IsStrictSuperSet(b) != true {
+		t.Errorf("IsStrictSuperSet fails")
+	}
+}
+
 func TestDumpAsBits(t *testing.T) {
 	a := New(10).Set(10)
 	astr := "0000000000000000000000000000000000000000000000000000010000000000."
@@ -647,6 +801,33 @@ func TestDumpAsBits(t *testing.T) {
 	bstr := "."
 	if b.DumpAsBits() != bstr {
 		t.Errorf("DumpAsBits failed, output should be \"%s\" but was \"%s\"", bstr, b.DumpAsBits())
+	}
+}
+
+func TestMarshalUnmarshalBinary(t *testing.T) {
+	a := New(1010).Set(10).Set(1001)
+	b := new(BitSet)
+
+	copyBinary(t, a, b)
+
+	// BitSets must be equal after marshalling and unmarshalling
+	if !a.Equal(b) {
+		t.Error("Bitsets are not equal:\n\t", a.DumpAsBits(), "\n\t", b.DumpAsBits())
+		return
+	}
+}
+
+func copyBinary(t *testing.T, from encoding.BinaryMarshaler, to encoding.BinaryUnmarshaler) {
+	data, err := from.MarshalBinary()
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+
+	err = to.UnmarshalBinary(data)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
 	}
 }
 
@@ -748,5 +929,50 @@ func BenchmarkSparseIterate(b *testing.B) {
 		for i, e := s.NextSet(0); e; i, e = s.NextSet(i + 1) {
 			c++
 		}
+	}
+}
+
+// go test -bench=LemireCreate
+// see http://lemire.me/blog/2016/09/22/swift-versus-java-the-bitset-performance-test/
+func BenchmarkLemireCreate(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bitmap := New(0) // we force dynamic memory allocation
+		for v := uint(0); v <= 100000000; v += 100 {
+			bitmap.Set(v)
+		}
+	}
+}
+
+// go test -bench=LemireCount
+// see http://lemire.me/blog/2016/09/22/swift-versus-java-the-bitset-performance-test/
+func BenchmarkLemireCount(b *testing.B) {
+	bitmap := New(100000000) // we force dynamic memory allocation
+	for v := uint(0); v <= 100000000; v += 100 {
+		bitmap.Set(v)
+	}
+	sum := uint(0)
+	for i := 0; i < b.N; i++ {
+		sum += bitmap.Count()
+	}
+	if sum == 0 { // added just to fool ineffassign
+		return
+	}
+}
+
+// go test -bench=LemireIterate
+// see http://lemire.me/blog/2016/09/22/swift-versus-java-the-bitset-performance-test/
+func BenchmarkLemireIterate(b *testing.B) {
+	bitmap := New(100000000) // we force dynamic memory allocation
+	for v := uint(0); v <= 100000000; v += 100 {
+		bitmap.Set(v)
+	}
+	sum := uint(0)
+	for i := 0; i < b.N; i++ {
+		for i, e := bitmap.NextSet(0); e; i, e = bitmap.NextSet(i + 1) {
+			sum++
+		}
+	}
+	if sum == 0 { // added just to fool ineffassign
+		return
 	}
 }

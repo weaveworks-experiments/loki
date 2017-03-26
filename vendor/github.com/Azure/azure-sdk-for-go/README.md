@@ -3,7 +3,7 @@
 This project provides various Go packages to perform operations
 on Microsoft Azure REST APIs.
 
-[![GoDoc](https://godoc.org/github.com/Azure/azure-sdk-for-go?status.svg)](https://godoc.org/github.com/Azure/azure-sdk-for-go) [![Build Status](https://travis-ci.org/Azure/azure-sdk-for-go.svg?branch=master)](https://travis-ci.org/Azure/azure-sdk-for-go) [![Go Report Card](https://goreportcard.com/badge/github.com/Azure/azure-sdk-for-go)](https://goreportcard.com/report/github.com/Azure/azure-sdk-for-go)
+[![GoDoc](https://godoc.org/github.com/Azure/azure-sdk-for-go?status.svg)](https://godoc.org/github.com/Azure/azure-sdk-for-go) [![Build Status](https://travis-ci.org/Azure/azure-sdk-for-go.svg?branch=master)](https://travis-ci.org/Azure/azure-sdk-for-go)
 
 > **NOTE:** This repository is under heavy ongoing development and
 is likely to break over time. We currently do not have any releases
@@ -16,60 +16,34 @@ the packages in your project and update them when a stable tag is out.
 
 [About ARM](/arm/README.md)
 
-- [analysisservices](/arm/analysisservices)
-- [apimanagement](/arm/apimanagement)
-- [apideployment](/arm/apideployment)
 - [authorization](/arm/authorization)
 - [batch](/arm/batch)
-- [billing](/arm/billing)
 - [cdn](/arm/cdn)
 - [cognitiveservices](/arm/cognitiveservices)
-- [commerce](/arm/commerce)
 - [compute](/arm/compute)
-- [containerregistry](/arm/containerregistry)
 - [containerservice](/arm/containerservice)
-- [customer-insights](/arm/customer-insights)
-- [datalake-analytics/account](/arm/datalake-analytics/account)
-- [datalake-store/account](/arm/datalake-store/account)
+- [datalake-store](/arm/datalake-store)
 - [devtestlabs](/arm/devtestlabs)
-- [disk](/arm/disk)
 - [dns](/arm/dns)
-- [documentdb](/arm/documentdb)
-- [eventhub](/arm/eventhub)
-- [graphrbac](/arm/graphrbac)
 - [intune](/arm/intune)
 - [iothub](/arm/iothub)
 - [keyvault](/arm/keyvault)
 - [logic](/arm/logic)
-- [machinelearning/commitmentplans](/arm/machinelearning/commitmentplans)
-- [machinelearning/webservices](/arm/machinelearning/webservices)
+- [machinelearning](/arm/machinelearning)
 - [mediaservices](/arm/mediaservices)
 - [mobileengagement](/arm/mobileengagement)
 - [network](/arm/network)
-- [networkwatcher](/arm/networkwatcher)
 - [notificationhubs](/arm/notificationhubs)
-- [operationalinsights](/arm/operationalinsights)
 - [powerbiembedded](/arm/powerbiembedded)
-- [recoveryservices](/arm/recoveryservices)
 - [redis](/arm/redis)
-- [resources/features](/arm/resources/features)
-- [resources/links](/arm/resources/links)
-- [resources/locks](/arm/resources/locks)
-- [resources/policy](/arm/resources/policy)
-- [resources/resources](/arm/resources/resources)
-- [resources/subscriptions](/arm/resources/subscriptions)
+- [resources](/arm/resources)
 - [scheduler](/arm/scheduler)
 - [search](/arm/search)
-- [servermanagement](/arm/servermanagement)
-- [service-map](/arm/service-map)
 - [servicebus](/arm/servicebus)
 - [sql](/arm/sql)
 - [storage](/arm/storage)
-- [storageimportexport](/arm/storageimportexport)
 - [trafficmanager](/arm/trafficmanager)
 - [web](/arm/web)
-
-- [keyvault dataplane](/dataplane/keyvault)
 
 ## Azure Service Management (ASM), aka classic deployment
 

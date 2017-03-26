@@ -44,6 +44,9 @@ const (
 	gceLabelInstanceStatus = gceLabel + "instance_status"
 	gceLabelTags           = gceLabel + "tags"
 	gceLabelMetadata       = gceLabel + "metadata_"
+
+	// Constants for instrumentation.
+	namespace = "prometheus"
 )
 
 var (
@@ -64,9 +67,9 @@ func init() {
 	prometheus.MustRegister(gceSDRefreshDuration)
 }
 
-// Discovery periodically performs GCE-SD requests. It implements
+// GCEDiscovery periodically performs GCE-SD requests. It implements
 // the TargetProvider interface.
-type Discovery struct {
+type GCEDiscovery struct {
 	project      string
 	zone         string
 	filter       string
@@ -78,9 +81,9 @@ type Discovery struct {
 	tagSeparator string
 }
 
-// NewDiscovery returns a new Discovery which periodically refreshes its targets.
-func NewDiscovery(conf *config.GCESDConfig) (*Discovery, error) {
-	gd := &Discovery{
+// NewGCEDiscovery returns a new GCEDiscovery which periodically refreshes its targets.
+func NewDiscovery(conf *config.GCESDConfig) (*GCEDiscovery, error) {
+	gd := &GCEDiscovery{
 		project:      conf.Project,
 		zone:         conf.Zone,
 		filter:       conf.Filter,
@@ -102,9 +105,9 @@ func NewDiscovery(conf *config.GCESDConfig) (*Discovery, error) {
 }
 
 // Run implements the TargetProvider interface.
-func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
+func (gd *GCEDiscovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	// Get an initial set right away.
-	tg, err := d.refresh()
+	tg, err := gd.refresh()
 	if err != nil {
 		log.Error(err)
 	} else {
@@ -114,13 +117,13 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 		}
 	}
 
-	ticker := time.NewTicker(d.interval)
+	ticker := time.NewTicker(gd.interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			tg, err := d.refresh()
+			tg, err := gd.refresh()
 			if err != nil {
 				log.Error(err)
 				continue
@@ -135,7 +138,7 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	}
 }
 
-func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
+func (gd *GCEDiscovery) refresh() (tg *config.TargetGroup, err error) {
 	t0 := time.Now()
 	defer func() {
 		gceSDRefreshDuration.Observe(time.Since(t0).Seconds())
@@ -145,12 +148,12 @@ func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
 	}()
 
 	tg = &config.TargetGroup{
-		Source: fmt.Sprintf("GCE_%s_%s", d.project, d.zone),
+		Source: fmt.Sprintf("GCE_%s_%s", gd.project, gd.zone),
 	}
 
-	ilc := d.isvc.List(d.project, d.zone)
-	if len(d.filter) > 0 {
-		ilc = ilc.Filter(d.filter)
+	ilc := gd.isvc.List(gd.project, gd.zone)
+	if len(gd.filter) > 0 {
+		ilc = ilc.Filter(gd.filter)
 	}
 	err = ilc.Pages(nil, func(l *compute.InstanceList) error {
 		for _, inst := range l.Items {
@@ -158,7 +161,7 @@ func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
 				continue
 			}
 			labels := model.LabelSet{
-				gceLabelProject:        model.LabelValue(d.project),
+				gceLabelProject:        model.LabelValue(gd.project),
 				gceLabelZone:           model.LabelValue(inst.Zone),
 				gceLabelInstanceName:   model.LabelValue(inst.Name),
 				gceLabelInstanceStatus: model.LabelValue(inst.Status),
@@ -167,14 +170,14 @@ func (d *Discovery) refresh() (tg *config.TargetGroup, err error) {
 			labels[gceLabelNetwork] = model.LabelValue(priIface.Network)
 			labels[gceLabelSubnetwork] = model.LabelValue(priIface.Subnetwork)
 			labels[gceLabelPrivateIP] = model.LabelValue(priIface.NetworkIP)
-			addr := fmt.Sprintf("%s:%d", priIface.NetworkIP, d.port)
+			addr := fmt.Sprintf("%s:%d", priIface.NetworkIP, gd.port)
 			labels[model.AddressLabel] = model.LabelValue(addr)
 
 			// Tags in GCE are usually only used for networking rules.
 			if inst.Tags != nil && len(inst.Tags.Items) > 0 {
 				// We surround the separated list with the separator as well. This way regular expressions
 				// in relabeling rules don't have to consider tag positions.
-				tags := d.tagSeparator + strings.Join(inst.Tags.Items, d.tagSeparator) + d.tagSeparator
+				tags := gd.tagSeparator + strings.Join(inst.Tags.Items, gd.tagSeparator) + gd.tagSeparator
 				labels[gceLabelTags] = model.LabelValue(tags)
 			}
 

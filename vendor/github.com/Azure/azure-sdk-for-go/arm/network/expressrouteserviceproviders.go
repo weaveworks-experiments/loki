@@ -45,7 +45,8 @@ func NewExpressRouteServiceProvidersClientWithBaseURI(baseURI string, subscripti
 	return ExpressRouteServiceProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List gets all the available express route service providers.
+// List the List ExpressRouteServiceProvider operation retrieves all the
+// available ExpressRouteServiceProviders.
 func (client ExpressRouteServiceProvidersClient) List() (result ExpressRouteServiceProviderListResult, err error) {
 	req, err := client.ListPreparer()
 	if err != nil {

@@ -21,6 +21,7 @@ package network
 import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"net/http"
 )
 
@@ -45,16 +46,26 @@ func NewSecurityGroupsClientWithBaseURI(baseURI string, subscriptionID string) S
 	return SecurityGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a network security group in the specified
-// resource group. This method may poll for completion. Polling can be
-// canceled by passing the cancel channel argument. The channel will be used
-// to cancel polling and any outstanding HTTP requests.
+// CreateOrUpdate the Put NetworkSecurityGroup operation creates/updates a
+// network security group in the specified resource group. This method may
+// poll for completion. Polling can be canceled by passing the cancel channel
+// argument. The channel will be used to cancel polling and any outstanding
+// HTTP requests.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.
-// parameters is parameters supplied to the create or update network security
-// group operation.
+// parameters is parameters supplied to the create/update Network Security
+// Group operation
 func (client SecurityGroupsClient) CreateOrUpdate(resourceGroupName string, networkSecurityGroupName string, parameters SecurityGroup, cancel <-chan struct{}) (result autorest.Response, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Properties.NetworkInterfaces", Name: validation.ReadOnly, Rule: true, Chain: nil},
+					{Target: "parameters.Properties.Subnets", Name: validation.ReadOnly, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "network.SecurityGroupsClient", "CreateOrUpdate")
+	}
+
 	req, err := client.CreateOrUpdatePreparer(resourceGroupName, networkSecurityGroupName, parameters, cancel)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.SecurityGroupsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -116,10 +127,10 @@ func (client SecurityGroupsClient) CreateOrUpdateResponder(resp *http.Response) 
 	return
 }
 
-// Delete deletes the specified network security group. This method may poll
-// for completion. Polling can be canceled by passing the cancel channel
-// argument. The channel will be used to cancel polling and any outstanding
-// HTTP requests.
+// Delete the Delete NetworkSecurityGroup operation deletes the specified
+// network security group This method may poll for completion. Polling can be
+// canceled by passing the cancel channel argument. The channel will be used
+// to cancel polling and any outstanding HTTP requests.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group.
@@ -183,11 +194,12 @@ func (client SecurityGroupsClient) DeleteResponder(resp *http.Response) (result 
 	return
 }
 
-// Get gets the specified network security group.
+// Get the Get NetworkSecurityGroups operation retrieves information about the
+// specified network security group.
 //
 // resourceGroupName is the name of the resource group.
 // networkSecurityGroupName is the name of the network security group. expand
-// is expands referenced resources.
+// is expand references resources.
 func (client SecurityGroupsClient) Get(resourceGroupName string, networkSecurityGroupName string, expand string) (result SecurityGroup, err error) {
 	req, err := client.GetPreparer(resourceGroupName, networkSecurityGroupName, expand)
 	if err != nil {
@@ -250,7 +262,8 @@ func (client SecurityGroupsClient) GetResponder(resp *http.Response) (result Sec
 	return
 }
 
-// List gets all network security groups in a resource group.
+// List the list NetworkSecurityGroups returns all network security groups in
+// a resource group
 //
 // resourceGroupName is the name of the resource group.
 func (client SecurityGroupsClient) List(resourceGroupName string) (result SecurityGroupListResult, err error) {
@@ -335,7 +348,8 @@ func (client SecurityGroupsClient) ListNextResults(lastResults SecurityGroupList
 	return
 }
 
-// ListAll gets all network security groups in a subscription.
+// ListAll the list NetworkSecurityGroups returns all network security groups
+// in a subscription
 func (client SecurityGroupsClient) ListAll() (result SecurityGroupListResult, err error) {
 	req, err := client.ListAllPreparer()
 	if err != nil {

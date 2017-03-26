@@ -64,6 +64,7 @@ type Discovery struct {
 	names []string
 
 	interval time.Duration
+	m        sync.RWMutex
 	port     int
 	qtype    uint16
 }
@@ -88,30 +89,30 @@ func NewDiscovery(conf *config.DNSSDConfig) *Discovery {
 }
 
 // Run implements the TargetProvider interface.
-func (d *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
-	ticker := time.NewTicker(d.interval)
+func (dd *Discovery) Run(ctx context.Context, ch chan<- []*config.TargetGroup) {
+	ticker := time.NewTicker(dd.interval)
 	defer ticker.Stop()
 
 	// Get an initial set right away.
-	d.refreshAll(ctx, ch)
+	dd.refreshAll(ctx, ch)
 
 	for {
 		select {
 		case <-ticker.C:
-			d.refreshAll(ctx, ch)
+			dd.refreshAll(ctx, ch)
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (d *Discovery) refreshAll(ctx context.Context, ch chan<- []*config.TargetGroup) {
+func (dd *Discovery) refreshAll(ctx context.Context, ch chan<- []*config.TargetGroup) {
 	var wg sync.WaitGroup
 
-	wg.Add(len(d.names))
-	for _, name := range d.names {
+	wg.Add(len(dd.names))
+	for _, name := range dd.names {
 		go func(n string) {
-			if err := d.refresh(ctx, n, ch); err != nil {
+			if err := dd.refresh(ctx, n, ch); err != nil {
 				log.Errorf("Error refreshing DNS targets: %s", err)
 			}
 			wg.Done()
@@ -121,8 +122,8 @@ func (d *Discovery) refreshAll(ctx context.Context, ch chan<- []*config.TargetGr
 	wg.Wait()
 }
 
-func (d *Discovery) refresh(ctx context.Context, name string, ch chan<- []*config.TargetGroup) error {
-	response, err := lookupAll(name, d.qtype)
+func (dd *Discovery) refresh(ctx context.Context, name string, ch chan<- []*config.TargetGroup) error {
+	response, err := lookupAll(name, dd.qtype)
 	dnsSDLookupsCount.Inc()
 	if err != nil {
 		dnsSDLookupFailuresCount.Inc()
@@ -143,9 +144,9 @@ func (d *Discovery) refresh(ctx context.Context, name string, ch chan<- []*confi
 
 			target = hostPort(addr.Target, int(addr.Port))
 		case *dns.A:
-			target = hostPort(addr.A.String(), d.port)
+			target = hostPort(addr.A.String(), dd.port)
 		case *dns.AAAA:
-			target = hostPort(addr.AAAA.String(), d.port)
+			target = hostPort(addr.AAAA.String(), dd.port)
 		default:
 			log.Warnf("%q is not a valid SRV record", record)
 			continue

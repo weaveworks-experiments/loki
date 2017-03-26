@@ -3,7 +3,7 @@ package config
 import (
 	"gopkg.in/yaml.v2"
 
-	"github.com/prometheus/promtheus/config"
+	"github.com/prometheus/prometheus/config"
 )
 
 // Config is the top-level configuration for Loki's config files.

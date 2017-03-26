@@ -33,15 +33,18 @@ func main() {
 		log.Fatalf("Error reading config: %v", err)
 	}
 
+	server, err := server.New(serverConfig)
+	if err != nil {
+		log.Fatalf("Error creating server: %v", err)
+	}
+	defer server.Shutdown()
+
 	store := storage.NewSpanStore()
 
 	targetManager := retrieval.NewTargetManager(scraper.NewScraperFn(store))
-	targetManager.ApplyScrapeConfig(config.ScrapeConfigs)
+	targetManager.ApplyConfig(config)
 	go targetManager.Run()
 	defer targetManager.Stop()
-
-	server := server.New(serverConfig)
-	defer server.Stop()
 
 	api.Register(server.HTTP, store)
 	server.HTTP.PathPrefix("/").Handler(ui.Handler)

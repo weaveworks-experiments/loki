@@ -1,1 +1,4 @@
-pkg/zipkin-ui/static/*
+./.git*
+./tools*
+./vendor*
+./pkg/zipkin-ui/static*

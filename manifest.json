@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "github.com/prometheus/prometheus": {
+            "branch": "master"
+        },
+        "github.com/weaveworks/common": {
+            "branch": "master"
+        }
+    }
+}

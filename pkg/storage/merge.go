@@ -97,7 +97,7 @@ func mergeTraceListList(input [][]Trace) []Trace {
 		result = append(result, mergeTraceList(traceList))
 	}
 
-	sort.Sort(byMinTimestamp(result))
+	sort.Sort(ByMinTimestamp(result))
 	return result
 }
 

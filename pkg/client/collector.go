@@ -1,8 +1,6 @@
 package loki
 
 import (
-	"log"
-	"net/http"
 	"sync"
 
 	"github.com/weaveworks-experiments/loki/pkg/model"
@@ -88,25 +86,4 @@ func (c *Collector) gather() []*model.Span {
 		panic("didn't clear all trace ids")
 	}
 	return spans
-}
-
-func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	spans := model.Spans{
-		Spans: c.gather(),
-	}
-	buf, err := spans.Marshal()
-	if err != nil {
-		log.Printf("error writing spans: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if _, err := w.Write(buf); err != nil {
-		log.Printf("error writing spans: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func Handler() http.Handler {
-	return globalCollector
 }

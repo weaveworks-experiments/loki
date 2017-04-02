@@ -23,7 +23,7 @@ func newImmutableBlock(b *mutableBlock) *immutableBlock {
 		traces = append(traces, *trace)
 	}
 
-	sort.Sort(byMinTimestamp(traces))
+	sort.Sort(ByMinTimestamp(traces))
 	traceIDs := make(map[uint64]int, len(b.traces))
 	for i, trace := range traces {
 		traceIDs[trace.ID] = i

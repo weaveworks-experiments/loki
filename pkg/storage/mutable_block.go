@@ -42,9 +42,9 @@ func (s *mutableBlock) Append(span *model.Span) error {
 	traceID := span.TraceId
 	t, ok := s.traces[traceID]
 	if ok {
-		t.addSpan(span)
+		t.AddSpan(span)
 	} else {
-		t = newTrace(span)
+		t = NewTrace(span)
 		s.traces[traceID] = t
 	}
 

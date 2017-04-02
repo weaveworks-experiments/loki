@@ -16,7 +16,7 @@ type Trace struct {
 	Spans        []*model.Span
 }
 
-func newTrace(span *model.Span) *Trace {
+func NewTrace(span *model.Span) *Trace {
 	return &Trace{
 		ID:           span.TraceId,
 		MinTimestamp: span.Start,
@@ -25,7 +25,7 @@ func newTrace(span *model.Span) *Trace {
 	}
 }
 
-func (t *Trace) addSpan(span *model.Span) {
+func (t *Trace) AddSpan(span *model.Span) {
 	t.Spans = append(t.Spans, span)
 	sort.Sort(byTimestamp(t.Spans))
 
@@ -83,11 +83,11 @@ func (t *Trace) match(query Query) bool {
 	return true
 }
 
-type byMinTimestamp []Trace
+type ByMinTimestamp []Trace
 
-func (ts byMinTimestamp) Len() int           { return len(ts) }
-func (ts byMinTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
-func (ts byMinTimestamp) Less(i, j int) bool { return ts[i].MinTimestamp.Before(ts[j].MinTimestamp) }
+func (ts ByMinTimestamp) Len() int           { return len(ts) }
+func (ts ByMinTimestamp) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
+func (ts ByMinTimestamp) Less(i, j int) bool { return ts[i].MinTimestamp.Before(ts[j].MinTimestamp) }
 
 type byTimestamp []*model.Span
 

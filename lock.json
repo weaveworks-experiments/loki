@@ -1,5 +1,5 @@
 {
-    "memo": "79d93ca7f69df15a00f71f3c5d627fb8e1d2bf67bb293d3ba3e4a741d0e25a92",
+    "memo": "afbbdc1179d518048e5e611f55e45b652216479b23de1adb2617f017287fe508",
     "projects": [
         {
             "name": "cloud.google.com/go",
@@ -275,8 +275,11 @@
             "version": "v0.4",
             "revision": "100ba4e885062801d56799d78530b73b178a78f3",
             "packages": [
+                "gogoproto",
                 "proto",
-                "sortkeys"
+                "protoc-gen-gogo/descriptor",
+                "sortkeys",
+                "types"
             ]
         },
         {
@@ -292,7 +295,8 @@
             "branch": "master",
             "revision": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317",
             "packages": [
-                "proto"
+                "proto",
+                "ptypes/timestamp"
             ]
         },
         {

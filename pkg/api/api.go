@@ -97,10 +97,10 @@ func Register(router *mux.Router, store storage.SpanStore) {
 	}))
 
 	router.Handle("/api/v1/traces", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nowMS := time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 		values := r.URL.Query()
 
-		endTS, err := parseInt64(values, "endTs", nowMS)
+		nowMS := time.Now().UnixNano() / 1e6
+		endMS, err := parseInt64(values, "endTs", nowMS)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -112,7 +112,7 @@ func Register(router *mux.Router, store storage.SpanStore) {
 			return
 		}
 
-		minDuration, err := parseInt64(values, "minDuration", 0)
+		minDurationUS, err := parseInt64(values, "minDuration", 0)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -130,13 +130,14 @@ func Register(router *mux.Router, store storage.SpanStore) {
 			return
 		}
 
+		end := time.Unix(endMS/1e3, (endMS%1e3)*1e6)
 		query := storage.Query{
-			EndMS:         endTS,
-			StartMS:       endTS - lookback,
-			Limit:         int(limit),
-			ServiceName:   serviceName,
-			SpanName:      values.Get("spanName"),
-			MinDurationUS: minDuration,
+			End:         end,
+			Start:       end.Add(time.Duration(-lookback) * time.Millisecond),
+			Limit:       int(limit),
+			ServiceName: serviceName,
+			SpanName:    values.Get("spanName"),
+			MinDuration: time.Duration(minDurationUS) * time.Millisecond,
 		}
 		traces, err := store.Traces(query)
 		if err != nil {

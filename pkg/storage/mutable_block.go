@@ -3,19 +3,20 @@ package storage
 import (
 	"sync"
 
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	prom_model "github.com/prometheus/common/model"
+	"github.com/weaveworks-experiments/loki/pkg/model"
 )
 
 type mutableBlock struct {
 	mtx       sync.RWMutex
-	traces    map[int64]*Trace
+	traces    map[uint64]*Trace
 	services  map[string]struct{}
 	spanNames map[string]map[string]struct{}
 }
 
 func newMutableBlock() *mutableBlock {
 	return &mutableBlock{
-		traces:    make(map[int64]*Trace, numMutableTraces),
+		traces:    make(map[uint64]*Trace, numMutableTraces),
 		services:  map[string]struct{}{},
 		spanNames: map[string]map[string]struct{}{},
 	}
@@ -27,19 +28,18 @@ func (s *mutableBlock) Size() int {
 	return len(s.traces)
 }
 
-func (s *mutableBlock) HasTrace(id int64) bool {
+func (s *mutableBlock) HasTrace(id uint64) bool {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	_, ok := s.traces[id]
 	return ok
 }
 
-func (s *mutableBlock) Append(span *zipkincore.Span) error {
+func (s *mutableBlock) Append(span *model.Span) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	traceID := span.GetTraceID()
-
+	traceID := span.TraceId
 	t, ok := s.traces[traceID]
 	if ok {
 		t.addSpan(span)
@@ -50,13 +50,12 @@ func (s *mutableBlock) Append(span *zipkincore.Span) error {
 
 	// update services 'index'
 	services := map[string]struct{}{}
-	for _, annotation := range span.Annotations {
-		s.services[annotation.Host.ServiceName] = struct{}{}
-		services[annotation.Host.ServiceName] = struct{}{}
-	}
-	for _, annotation := range span.BinaryAnnotations {
-		s.services[annotation.Host.ServiceName] = struct{}{}
-		services[annotation.Host.ServiceName] = struct{}{}
+	for _, tag := range span.Tags {
+		if tag.Key != prom_model.JobLabel {
+			continue
+		}
+		s.services[tag.String_] = struct{}{}
+		services[tag.String_] = struct{}{}
 	}
 
 	// update spanNames 'index'
@@ -64,7 +63,7 @@ func (s *mutableBlock) Append(span *zipkincore.Span) error {
 		if _, ok := s.spanNames[service]; !ok {
 			s.spanNames[service] = map[string]struct{}{}
 		}
-		s.spanNames[service][span.Name] = struct{}{}
+		s.spanNames[service][span.OperationName] = struct{}{}
 	}
 
 	return nil
@@ -94,7 +93,7 @@ func (s *mutableBlock) SpanNames(serviceName string) ([]string, error) {
 	return result, nil
 }
 
-func (s *mutableBlock) Trace(id int64) (Trace, error) {
+func (s *mutableBlock) Trace(id uint64) (Trace, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -111,7 +110,7 @@ func (s *mutableBlock) Traces(query Query) ([]Trace, error) {
 
 	traces := []Trace{}
 	for _, trace := range s.traces {
-		if trace.MaxTimestamp >= (query.StartMS*1000) && trace.MinTimestamp < (query.EndMS*1000) {
+		if trace.MaxTimestamp.After(query.Start) && trace.MinTimestamp.Before(query.End) {
 			traces = append(traces, *trace)
 		}
 	}

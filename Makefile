@@ -35,7 +35,8 @@ EXES = $(LOKI_EXE)
 all: $(UPTODATE_FILES)
 
 # And what goes into each exe
-$(LOKI_EXE): $(shell find . -name '*.go') pkg/zipkin-ui/bindata.go pkg/model/model.pb.go
+GO_FILES := $(shell find . -name tools -prune -o -name vendor -prune -o -type f -name '*.go' -print)
+$(LOKI_EXE): $(GO_FILES) pkg/zipkin-ui/bindata.go pkg/model/model.pb.go
 pkg/zipkin-ui/bindata.go: $(shell find pkg/zipkin-ui/static)
 pkg/model/model.pb.go: pkg/model/model.proto
 

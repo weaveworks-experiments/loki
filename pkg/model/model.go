@@ -9,7 +9,7 @@ import (
 )
 
 type activeSpan struct {
-	tracer opentracing.Tracer
+	tracer *Tracer
 	sync.Mutex
 	Span
 }
@@ -29,6 +29,7 @@ func (s *activeSpan) FinishWithOptions(opts opentracing.FinishOptions) {
 		s.End = opts.FinishTime
 	}
 	s.Logs = append(s.Logs, fromLogRecords(opts.LogRecords)...)
+	s.tracer.Collector.Collect(&s.Span)
 }
 
 // Context implements opentracing.Span.
@@ -50,17 +51,26 @@ func (s *activeSpan) SetOperationName(operationName string) opentracing.Span {
 func (s *activeSpan) SetTag(key string, value interface{}) opentracing.Span {
 	s.Lock()
 	defer s.Unlock()
-	if kv, ok := keyValueFrom(key, value); ok {
+	if kv, ok := KeyValueFrom(key, value); ok {
 		s.Tags = append(s.Tags, kv)
 	}
 	return s
+}
+
+func (s *Span) Tag(key string) KeyValue {
+	for _, tag := range s.Tags {
+		if tag.Key == key {
+			return tag
+		}
+	}
+	return KeyValue{}
 }
 
 // LogFields implements opentracing.Span
 func (s *activeSpan) LogFields(fields ...log.Field) {
 	s.Lock()
 	defer s.Unlock()
-	s.Logs = append(s.Logs, fromLogFields(fields))
+	s.Logs = append(s.Logs, fromLogFields(time.Now(), fields))
 }
 
 // LogKV implements opentracing.Span
@@ -103,22 +113,13 @@ func (s *activeSpan) Log(data opentracing.LogData) {}
 
 func fromLogRecords(records []opentracing.LogRecord) []LogRecord {
 	result := make([]LogRecord, 0, len(records))
-	var kve keyValueEncoder
 	for _, record := range records {
-		fields := make([]KeyValue, 0, len(record.Fields))
-		for i, field := range record.Fields {
-			kve.kv = &fields[i]
-			field.Marshal(kve)
-		}
-		result = append(result, LogRecord{
-			Timestamp: record.Timestamp,
-			Fields:    fields,
-		})
+		result = append(result, fromLogFields(record.Timestamp, record.Fields))
 	}
 	return result
 }
 
-func fromLogFields(fields []log.Field) LogRecord {
+func fromLogFields(timestamp time.Time, fields []log.Field) LogRecord {
 	var kve keyValueEncoder
 	result := make([]KeyValue, 0, len(fields))
 	for i, field := range fields {
@@ -197,7 +198,7 @@ func (e keyValueEncoder) EmitLazyLogger(value log.LazyLogger) {
 	panic("Not supported")
 }
 
-func keyValueFrom(key string, value interface{}) (KeyValue, bool) {
+func KeyValueFrom(key string, value interface{}) (KeyValue, bool) {
 	switch v := value.(type) {
 	case string:
 		return KeyValue{
@@ -255,5 +256,22 @@ func keyValueFrom(key string, value interface{}) (KeyValue, bool) {
 		}, true
 	default:
 		return KeyValue{}, false
+	}
+}
+
+func (kv *KeyValue) Value() interface{} {
+	switch kv.Type {
+	case String:
+		return kv.String_
+	case Bool:
+		return kv.Bool
+	case Int64:
+		return kv.Int64
+	case Uint64:
+		return kv.Uint64
+	case Float64:
+		return kv.Float64
+	default:
+		return nil
 	}
 }

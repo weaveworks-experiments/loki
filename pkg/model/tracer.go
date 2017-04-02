@@ -31,10 +31,15 @@ func randomID() uint64 {
 	return uint64(seededIDGen.Int63())
 }
 
-type tracer struct {
+type Collector interface {
+	Collect(span *Span) error
 }
 
-func (t *tracer) StartSpan(operationName string, ssos ...opentracing.StartSpanOption) opentracing.Span {
+type Tracer struct {
+	Collector Collector
+}
+
+func (t *Tracer) StartSpan(operationName string, ssos ...opentracing.StartSpanOption) opentracing.Span {
 	var opts opentracing.StartSpanOptions
 	for _, sso := range ssos {
 		sso.Apply(&opts)
@@ -47,7 +52,7 @@ func (t *tracer) StartSpan(operationName string, ssos ...opentracing.StartSpanOp
 	var tags []KeyValue
 	if opts.Tags != nil {
 		for k, v := range opts.Tags {
-			if tag, ok := keyValueFrom(k, v); ok {
+			if tag, ok := KeyValueFrom(k, v); ok {
 				tags = append(tags, tag)
 			}
 		}
@@ -65,6 +70,7 @@ func (t *tracer) StartSpan(operationName string, ssos ...opentracing.StartSpanOp
 	spanID := randomID()
 
 	return &activeSpan{
+		tracer: t,
 		Span: Span{
 			SpanContext: SpanContext{
 				TraceId: traceID,
@@ -78,7 +84,7 @@ func (t *tracer) StartSpan(operationName string, ssos ...opentracing.StartSpanOp
 	}
 }
 
-func (t *tracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
+func (t *Tracer) Inject(sc opentracing.SpanContext, format interface{}, carrier interface{}) error {
 	context := sc.(SpanContext)
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
@@ -97,7 +103,7 @@ func (t *tracer) Inject(sc opentracing.SpanContext, format interface{}, carrier 
 	return opentracing.ErrUnsupportedFormat
 }
 
-func (t *tracer) injectText(context SpanContext, carrier opentracing.TextMapWriter) error {
+func (t *Tracer) injectText(context SpanContext, carrier opentracing.TextMapWriter) error {
 	carrier.Set(headerTraceID, strconv.FormatUint(context.TraceId, 16))
 	carrier.Set(headerParentSpanID, strconv.FormatUint(context.SpanId, 16))
 	context.ForeachBaggageItem(func(k, v string) bool {
@@ -107,7 +113,7 @@ func (t *tracer) injectText(context SpanContext, carrier opentracing.TextMapWrit
 	return nil
 }
 
-func (t *tracer) injectBinary(context SpanContext, carrier io.Writer) error {
+func (t *Tracer) injectBinary(context SpanContext, carrier io.Writer) error {
 	buf, err := context.Marshal()
 	if err == nil {
 		_, err = carrier.Write(buf)
@@ -115,7 +121,7 @@ func (t *tracer) injectBinary(context SpanContext, carrier io.Writer) error {
 	return err
 }
 
-func (t *tracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
+func (t *Tracer) Extract(format interface{}, carrier interface{}) (opentracing.SpanContext, error) {
 	switch format {
 	case opentracing.TextMap, opentracing.HTTPHeaders:
 		textMapReader, ok := carrier.(opentracing.TextMapReader)
@@ -133,7 +139,7 @@ func (t *tracer) Extract(format interface{}, carrier interface{}) (opentracing.S
 	return SpanContext{}, opentracing.ErrUnsupportedFormat
 }
 
-func (t *tracer) extractText(carrier opentracing.TextMapReader) (opentracing.SpanContext, error) {
+func (t *Tracer) extractText(carrier opentracing.TextMapReader) (opentracing.SpanContext, error) {
 	var spanID, traceID uint64
 	var baggage []Baggage
 
@@ -168,7 +174,7 @@ func (t *tracer) extractText(carrier opentracing.TextMapReader) (opentracing.Spa
 	}, nil
 }
 
-func (t *tracer) extractBinary(carrier io.Reader) (opentracing.SpanContext, error) {
+func (t *Tracer) extractBinary(carrier io.Reader) (opentracing.SpanContext, error) {
 	var context SpanContext
 	buf, err := ioutil.ReadAll(carrier)
 	if err != nil {

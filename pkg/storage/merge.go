@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"math"
 	"sort"
+	"time"
 
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/weaveworks-experiments/loki/pkg/model"
 )
 
 func mergeStringLists(a, b []string) []string {
@@ -61,15 +61,14 @@ func mergeTraceList(input []Trace) Trace {
 		panic("Cannot merge zero-length list!")
 	}
 
-	spans := []*zipkincore.Span{}
-	var minTimestamp int64 = math.MaxInt64
-	var maxTimestamp int64
+	spans := []*model.Span{}
+	var minTimestamp, maxTimestamp time.Time
 	for _, trace := range input {
 		spans = append(spans, trace.Spans...)
-		if trace.MinTimestamp < minTimestamp {
+		if !minTimestamp.IsZero() || minTimestamp.After(trace.MinTimestamp) {
 			minTimestamp = trace.MinTimestamp
 		}
-		if trace.MaxTimestamp > maxTimestamp {
+		if maxTimestamp.IsZero() || maxTimestamp.Before(trace.MaxTimestamp) {
 			maxTimestamp = trace.MaxTimestamp
 		}
 	}
@@ -85,7 +84,7 @@ func mergeTraceList(input []Trace) Trace {
 // mergeTraceListList merges a list of lists traces.  It assumes traces within
 // each inner-list do not overlap.
 func mergeTraceListList(input [][]Trace) []Trace {
-	traces := map[int64][]Trace{}
+	traces := map[uint64][]Trace{}
 	for _, traceList := range input {
 		for _, trace := range traceList {
 			id := trace.ID

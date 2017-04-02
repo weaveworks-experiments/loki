@@ -5,9 +5,13 @@ package model;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
+message Spans {
+  repeated Span spans = 1;
+}
+
 message Span {
   SpanContext span_context = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
-  uint64 parent_span_id = 2;
+  uint64 parent_span_id = 2 [(gogoproto.nullable) = true];
   google.protobuf.Timestamp start = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
   google.protobuf.Timestamp end = 4 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
   string operation_name = 5;

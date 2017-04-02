@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/weaveworks-experiments/loki/pkg/model"
 )
 
 const numImmutableBlocks = 1024
@@ -23,11 +23,11 @@ type inMemory struct {
 	immutableBlocks []*immutableBlock
 }
 
-func (s *inMemory) Append(span *zipkincore.Span) error {
+func (s *inMemory) Append(span *model.Span) error {
 	var err error
 	s.mtx.RLock()
 	size := s.mutableBlock.Size()
-	hasTrace := s.mutableBlock.HasTrace(span.GetTraceID())
+	hasTrace := s.mutableBlock.HasTrace(span.TraceId)
 	insertIntoMutableBlock := size < numMutableTraces || hasTrace
 	if insertIntoMutableBlock {
 		err = s.mutableBlock.Append(span)
@@ -88,7 +88,7 @@ func (s *inMemory) SpanNames(serviceName string) ([]string, error) {
 	return mergeStringListList(result), err
 }
 
-func (s *inMemory) Trace(id int64) (Trace, error) {
+func (s *inMemory) Trace(id uint64) (Trace, error) {
 	var result []Trace
 	err := s.stores(func(s ReadStore) error {
 		trace, err := s.Trace(id)

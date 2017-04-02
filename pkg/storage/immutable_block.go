@@ -7,7 +7,7 @@ import (
 type immutableBlock struct {
 	//from, through int64 // in ms
 
-	traceIDs  map[int64]int
+	traceIDs  map[uint64]int
 	traces    []Trace // sorted by minTimestamp
 	services  []string
 	spanNames map[string][]string
@@ -24,7 +24,7 @@ func newImmutableBlock(b *mutableBlock) *immutableBlock {
 	}
 
 	sort.Sort(byMinTimestamp(traces))
-	traceIDs := make(map[int64]int, len(b.traces))
+	traceIDs := make(map[uint64]int, len(b.traces))
 	for i, trace := range traces {
 		traceIDs[trace.ID] = i
 	}
@@ -59,7 +59,7 @@ func (s *immutableBlock) SpanNames(serviceName string) ([]string, error) {
 	return s.spanNames[serviceName], nil
 }
 
-func (s *immutableBlock) Trace(id int64) (Trace, error) {
+func (s *immutableBlock) Trace(id uint64) (Trace, error) {
 	i, ok := s.traceIDs[id]
 	if !ok {
 		return Trace{}, nil
@@ -70,13 +70,13 @@ func (s *immutableBlock) Trace(id int64) (Trace, error) {
 func (s *immutableBlock) Traces(query Query) ([]Trace, error) {
 	// the smallest index i in [0, n) at which f(i) is true
 	first := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MinTimestamp >= (query.StartMS * 1000)
+		return s.traces[i].MinTimestamp.Before(query.Start)
 	})
 	if first == len(s.traces) {
 		return nil, nil
 	}
 	last := sort.Search(len(s.traces), func(i int) bool {
-		return s.traces[i].MinTimestamp > (query.EndMS * 1000)
+		return s.traces[i].MinTimestamp.After(query.End)
 	})
 	return s.traces[first:last], nil
 }

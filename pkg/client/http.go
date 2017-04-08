@@ -1,15 +1,15 @@
 package loki
 
 import (
+	"fmt"
 	"html/template"
-	"io"
-	"log"
 	"net/http"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/weaveworks-experiments/loki/pkg/model"
-	"github.com/weaveworks-experiments/loki/pkg/storage"
 )
 
 func contains(haystack []string, needle string) bool {
@@ -22,22 +22,12 @@ func contains(haystack []string, needle string) bool {
 }
 
 func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	spans := model.Spans{
-		Spans: c.gather(),
-	}
-
-	encodings := strings.Split(r.Header.Get("Accept-Encoding"), ",")
-	var err error
+	traces := c.gather()
+	encodings := strings.Split(r.Header.Get("Accept"), ",")
 	if contains(encodings, "text/html") {
-		err = encodeHTML(spans, w)
+		encodeHTML(traces, w, r)
 	} else {
-		err = encodeProto(spans, w)
-	}
-
-	if err != nil {
-		log.Printf("error writing spans: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		encodeProto(traces, w)
 	}
 }
 
@@ -45,21 +35,36 @@ func Handler() http.Handler {
 	return globalCollector
 }
 
-func encodeProto(spans model.Spans, w io.Writer) error {
-	buf, err := spans.Marshal()
+func encodeProto(ts []model.Trace, w http.ResponseWriter) {
+	traces := model.Traces{
+		Traces: ts,
+	}
+	buf, err := traces.Marshal()
 	if err != nil {
-		return nil
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	_, err = w.Write(buf)
-	return err
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
-const tpl = `
+const tracesTpl = `
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="UTF-8">
 		<title>Traces</title>
+		<style type="text/css">
+			td:nth-child(1) {
+				width: 20%;
+			}
+			td:nth-child(2) {
+				width: 20%;
+			}
+		</style>
 	</head>
 	<body>
 		<h1>Traces</h1>
@@ -67,18 +72,16 @@ const tpl = `
 			<thead>
 				<tr>
 					<th>Time</th>
-          <th>Duration</th>
-					<th>ID</th>
-					<th>Path</th>
+					<th>Duration</th>
+					<th>Operation</th>
 				</tr>
 			</thead>
 			<tbody>
 				{{ range .Traces }}
 				<tr>
-					<td>{{ .MinTimestamp }}</td>
-          <td>{{ call .MaxTimestamp.Sub .MinTimestamp }}</td>
-					<td></td>
-					<td></td>
+					<td>{{ .Start }}</td>
+					<td>{{ .Duration }}</td>
+					<td><a href="/traces/{{ .TraceId }}">{{ .OperationName }}</a></td>
 				</tr>
 				{{ end }}
 			</tbody>
@@ -86,36 +89,87 @@ const tpl = `
 	</body>
 </html>`
 
-var tmpl *template.Template
+const traceTpl = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Trace {{ .TraceId }}</title>
+	</head>
+	<body>
+		<h1>Trace {{ .TraceId }}</h1>
+		<pre>
+		{{ range .Spans }}
+{{ .Start }} {{ .End.Sub .Start }} {{ .OperationName }}
+{{ range .Tags }}    {{ .Key }}: {{ .Value }}
+{{ end }}
+		{{ end }}
+		</pre>
+		</table>
+	</body>
+</html>`
+
+var tracesTmpl *template.Template
+var traceTmpl *template.Template
 
 func init() {
 	var err error
-	tmpl, err = template.New("webpage").Parse(tpl)
+	tracesTmpl, err = template.New("webpage").Parse(tracesTpl)
+	if err != nil {
+		panic(err)
+	}
+	traceTmpl, err = template.New("webpage").Parse(traceTpl)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func encodeHTML(spans model.Spans, w io.Writer) error {
-	traces := map[uint64]*storage.Trace{}
-	for _, span := range spans.Spans {
-		trace, ok := traces[span.TraceId]
-		if !ok {
-			traces[span.TraceId] = storage.NewTrace(span)
-		} else {
-			trace.AddSpan(span)
+var pathRegexp = regexp.MustCompile("^/traces/([0-9]+)$")
+
+type tracesByStart []model.Trace
+
+func (a tracesByStart) Len() int           { return len(a) }
+func (a tracesByStart) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a tracesByStart) Less(i, j int) bool { return a[i].Start().Before(a[j].Start()) }
+
+type spansByStart []model.Span
+
+func (a spansByStart) Len() int           { return len(a) }
+func (a spansByStart) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a spansByStart) Less(i, j int) bool { return a[i].Start.Before(a[j].Start) }
+
+func encodeHTML(traces []model.Trace, w http.ResponseWriter, r *http.Request) {
+	if matches := pathRegexp.FindStringSubmatch(r.RequestURI); len(matches) == 2 {
+		traceID, err := strconv.ParseUint(matches[1], 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		var trace *model.Trace
+		for _, t := range traces {
+			if t.TraceId == traceID {
+				trace = &t
+				break
+			}
+		}
+		if trace == nil {
+			http.Error(w, fmt.Sprintf("Trace %d not found", traceID), http.StatusNotFound)
+			return
+		}
+		sort.Sort(spansByStart(trace.Spans))
+		if err := traceTmpl.Execute(w, trace); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		sort.Sort(sort.Reverse(tracesByStart(traces)))
+		if err := tracesTmpl.Execute(w, struct {
+			Traces []model.Trace
+		}{
+			Traces: traces,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
-
-	sorted := []storage.Trace{}
-	for _, trace := range traces {
-		sorted = append(sorted, *trace)
-	}
-	sort.Sort(storage.ByMinTimestamp(sorted))
-
-	return tmpl.Execute(w, struct {
-		Traces []storage.Trace
-	}{
-		Traces: sorted,
-	})
 }

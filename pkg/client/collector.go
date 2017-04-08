@@ -12,26 +12,21 @@ var globalCollector = NewCollector(15 * 100)
 type Collector struct {
 	mtx      sync.Mutex
 	traceIDs map[uint64]int // map from trace ID to index in traces
-	traces   []trace
+	traces   []model.Trace
 	next     int
 	length   int
-}
-
-type trace struct {
-	traceID uint64
-	spans   []*model.Span
 }
 
 func NewCollector(capacity int) *Collector {
 	return &Collector{
 		traceIDs: make(map[uint64]int, capacity),
-		traces:   make([]trace, capacity, capacity),
+		traces:   make([]model.Trace, capacity, capacity),
 		next:     0,
 		length:   0,
 	}
 }
 
-func (c *Collector) Collect(span *model.Span) error {
+func (c *Collector) Collect(span model.Span) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
@@ -46,18 +41,18 @@ func (c *Collector) Collect(span *model.Span) error {
 		// If the slot it occupied, we'll need to clear the trace ID index,
 		// otherwise we'll need to number of traces.
 		if c.length == cap(c.traces) {
-			delete(c.traceIDs, c.traces[idx].traceID)
+			delete(c.traceIDs, c.traces[idx].TraceId)
 		} else {
 			c.length++
 		}
 
 		// Initialise said slot.
 		c.traceIDs[traceID] = idx
-		c.traces[idx].traceID = traceID
-		c.traces[idx].spans = c.traces[idx].spans[:0]
+		c.traces[idx].TraceId = traceID
+		c.traces[idx].Spans = c.traces[idx].Spans[:0]
 	}
 
-	c.traces[idx].spans = append(c.traces[idx].spans, span)
+	c.traces[idx].Spans = append(c.traces[idx].Spans, span)
 	return nil
 }
 
@@ -65,25 +60,20 @@ func (*Collector) Close() error {
 	return nil
 }
 
-func (c *Collector) gather() []*model.Span {
+func (c *Collector) gather() []model.Trace {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	spans := make([]*model.Span, 0, c.length)
+	traces := make([]model.Trace, 0, c.length)
 	i, count := c.next-c.length, 0
 	if i < 0 {
 		i = cap(c.traces) + i
 	}
 	for count < c.length {
 		i %= cap(c.traces)
-		spans = append(spans, c.traces[i].spans...)
-		delete(c.traceIDs, c.traces[i].traceID)
+		traces = append(traces, c.traces[i])
 		i++
 		count++
 	}
-	c.length = 0
-	if len(c.traceIDs) != 0 {
-		panic("didn't clear all trace ids")
-	}
-	return spans
+	return traces
 }

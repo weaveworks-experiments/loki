@@ -29,7 +29,7 @@ func (s *activeSpan) FinishWithOptions(opts opentracing.FinishOptions) {
 		s.End = opts.FinishTime
 	}
 	s.Logs = append(s.Logs, fromLogRecords(opts.LogRecords)...)
-	s.tracer.Collector.Collect(&s.Span)
+	s.tracer.Collector.Collect(s.Span)
 }
 
 // Context implements opentracing.Span.
@@ -274,4 +274,36 @@ func (kv *KeyValue) Value() interface{} {
 	default:
 		return nil
 	}
+}
+
+func (t *Trace) Start() time.Time {
+	var start time.Time
+	for _, span := range t.Spans {
+		if start.IsZero() || span.Start.Before(start) {
+			start = span.Start
+		}
+	}
+	return start
+}
+
+func (t *Trace) Duration() time.Duration {
+	var start, end time.Time
+	for _, span := range t.Spans {
+		if start.IsZero() || span.Start.Before(start) {
+			start = span.Start
+		}
+		if end.IsZero() || span.End.After(end) {
+			end = span.End
+		}
+	}
+	return end.Sub(start)
+}
+
+func (t *Trace) OperationName() string {
+	for _, span := range t.Spans {
+		if span.ParentSpanId == 0 {
+			return span.OperationName
+		}
+	}
+	return ""
 }

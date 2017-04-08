@@ -32,7 +32,7 @@ func randomID() uint64 {
 }
 
 type Collector interface {
-	Collect(span *Span) error
+	Collect(span Span) error
 }
 
 type Tracer struct {
@@ -140,18 +140,23 @@ func (t *Tracer) Extract(format interface{}, carrier interface{}) (opentracing.S
 }
 
 func (t *Tracer) extractText(carrier opentracing.TextMapReader) (opentracing.SpanContext, error) {
-	var spanID, traceID uint64
-	var baggage []Baggage
+	var (
+		spanID, traceID           uint64
+		foundSpanID, foundTraceID bool
+		baggage                   []Baggage
+	)
 
 	if err := carrier.ForeachKey(func(key string, val string) error {
 		var err error
 		switch {
 		case key == headerTraceID:
+			foundTraceID = true
 			traceID, err = strconv.ParseUint(val, 16, 64)
 			if err != nil {
 				return err
 			}
 		case key == headerParentSpanID:
+			foundSpanID = false
 			spanID, err = strconv.ParseUint(val, 16, 64)
 			if err != nil {
 				return err
@@ -164,7 +169,11 @@ func (t *Tracer) extractText(carrier opentracing.TextMapReader) (opentracing.Spa
 		}
 		return nil
 	}); err != nil {
-		return SpanContext{}, err
+		return nil, err
+	}
+
+	if !foundSpanID || !foundTraceID {
+		return nil, opentracing.ErrSpanContextNotFound
 	}
 
 	return SpanContext{

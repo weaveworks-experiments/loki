@@ -8,18 +8,19 @@ import (
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/mwitkow/go-grpc-middleware"
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"github.com/weaveworks-experiments/loki/pkg/client"
 	"github.com/weaveworks/common/httpgrpc"
+	httpgrpc_server "github.com/weaveworks/common/httpgrpc/server"
 	"github.com/weaveworks/common/middleware"
 	"github.com/weaveworks/common/signals"
 )
@@ -39,6 +40,8 @@ type Config struct {
 	HTTPListenPort   int
 	GRPCListenPort   int
 
+	RegisterInstrumentation bool
+
 	ServerGracefulShutdownTimeout time.Duration
 	HTTPServerReadTimeout         time.Duration
 	HTTPServerWriteTimeout        time.Duration
@@ -52,6 +55,7 @@ type Config struct {
 func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 	f.IntVar(&cfg.HTTPListenPort, "server.http-listen-port", 80, "HTTP server listen port.")
 	f.IntVar(&cfg.GRPCListenPort, "server.grpc-listen-port", 9095, "gRPC server listen port.")
+	f.BoolVar(&cfg.RegisterInstrumentation, "server.register-instrumentation", true, "Register the intrumentation handlers (/metrics etc).")
 	f.DurationVar(&cfg.ServerGracefulShutdownTimeout, "server.graceful-shutdown-timeout", 5*time.Second, "Timeout for graceful shutdowns")
 	f.DurationVar(&cfg.HTTPServerReadTimeout, "server.http-read-timeout", 5*time.Second, "Read timeout for HTTP server")
 	f.DurationVar(&cfg.HTTPServerWriteTimeout, "server.http-write-timeout", 5*time.Second, "Write timeout for HTTP server")
@@ -110,9 +114,9 @@ func New(cfg Config) (*Server, error) {
 
 	// Setup HTTP server
 	router := mux.NewRouter()
-	router.Handle("/metrics", prometheus.Handler())
-	router.Handle("/traces", loki.Handler())
-	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+	if cfg.RegisterInstrumentation {
+		RegisterInstrumentation(router)
+	}
 	httpMiddleware := []middleware.Interface{
 		middleware.Log{},
 		middleware.Instrument{
@@ -143,13 +147,20 @@ func New(cfg Config) (*Server, error) {
 	}, nil
 }
 
+// RegisterInstrumentation on the given router.
+func RegisterInstrumentation(router *mux.Router) {
+	router.Handle("/metrics", prometheus.Handler())
+	router.Handle("/traces", loki.Handler())
+	router.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+}
+
 // Run the server; blocks until SIGTERM is received.
 func (s *Server) Run() {
 	go s.httpServer.Serve(s.httpListener)
 
 	// Setup gRPC server
 	// for HTTP over gRPC, ensure we don't double-count the middleware
-	httpgrpc.RegisterHTTPServer(s.GRPC, httpgrpc.NewServer(s.HTTP))
+	httpgrpc.RegisterHTTPServer(s.GRPC, httpgrpc_server.NewServer(s.HTTP))
 	go s.GRPC.Serve(s.grpcListener)
 	defer s.GRPC.GracefulStop()
 
@@ -165,7 +176,7 @@ func (s *Server) Stop() {
 // Shutdown the server, gracefully.  Should be defered after New().
 func (s *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ServerGracefulShutdownTimeout)
-	defer cancel() // releases resources if httpServer.Churdown completes before timeout elapses
+	defer cancel() // releases resources if httpServer.Shutdown completes before timeout elapses
 
 	s.httpServer.Shutdown(ctx)
 	s.GRPC.Stop()

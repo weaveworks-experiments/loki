@@ -1,0 +1,15 @@
+# Gopkg.toml
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+
+# Historically, loki had a dependency on tomwilkie/prometheus#scrape-callback
+# but the branch was eventually deleted from the repository, which led to
+# issues when updating/changing dependencies. This branch was therefore recreated
+# under weaveworks-experiments/prometheus and should be used as a dependency for loki,
+# hence the below constraint.
+# Should prometheus be upgraded, the diff applied on the closest upstream can be found here:
+# https://github.com/weaveworks-experiments/prometheus/commit/d8d2921c4933f770e2638586a54da5840aee3d0d
+[[constraint]]
+  name = "github.com/prometheus/prometheus"
+  source = "github.com/weaveworks-experiments/prometheus"
+  branch = "scrape-callback"

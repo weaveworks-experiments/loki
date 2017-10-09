@@ -3,8 +3,8 @@ package storage
 import (
 	"sort"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	log "github.com/sirupsen/logrus"
 )
 
 type Trace struct {

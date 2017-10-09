@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/retrieval"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"

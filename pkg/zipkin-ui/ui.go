@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var Handler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

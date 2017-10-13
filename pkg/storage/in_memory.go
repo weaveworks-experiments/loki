@@ -4,8 +4,8 @@ import (
 	"sort"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	log "github.com/sirupsen/logrus"
 )
 
 const numImmutableBlocks = 1024

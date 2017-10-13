@@ -4,6 +4,12 @@
 1. `go get golang.org/x/review/git-codereview` to install the code reviewing tool.
     1. You will need to ensure that your `GOBIN` directory (by default
        `$GOPATH/bin`) is in your `PATH` so that git can find the command.
+    1. If you would like, you may want to set up aliases for git-codereview,
+       such that `git codereview change` becomes `git change`. See the
+       [godoc](https://godoc.org/golang.org/x/review/git-codereview) for details.
+    1. Should you run into issues with the git-codereview tool, please note
+       that all error messages will assume that you have set up these
+       aliases.
 1. Get the cloud package by running `go get -d cloud.google.com/go`.
     1. If you have already checked out the source, make sure that the remote git
        origin is https://code.googlesource.com/gocloud:
@@ -35,6 +41,12 @@ run the against the actual APIs.
 - **GCLOUD_TESTS_GOLANG_PROJECT_ID**: Developers Console project's ID (e.g. bamboo-shift-455)
 - **GCLOUD_TESTS_GOLANG_KEY**: The path to the JSON key file.
 - **GCLOUD_TESTS_API_KEY**: Your API key.
+
+Firestore requires a different project and key:
+
+- **GCLOUD_TESTS_GOLANG_FIRESTORE_PROJECT_ID**: Developers Console project's ID
+  supporting Firestore
+- **GCLOUD_TESTS_GOLANG_FIRESTORE_KEY**: The path to the JSON key file.
 
 Install the [gcloud command-line tool][gcloudcli] to your machine and use it
 to create some resources used in integration tests.

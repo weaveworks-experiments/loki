@@ -4,7 +4,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/openzipkin/zipkin-go-opentracing/thrift/gen-go/zipkincore"
 )
 
 func mergeStringLists(a, b []string) []string {

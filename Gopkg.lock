@@ -10,14 +10,12 @@
 [[projects]]
   name = "github.com/Azure/azure-sdk-for-go"
   packages = ["arm/compute","arm/network"]
-  revision = "e01c89c9c29b97413ae6ebe89a294d814ec7ca8b"
-  version = "v6.0.0-beta"
+  revision = "bd73d950fa4440dae889bd9917bff7cef539f86e"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
   packages = ["autorest","autorest/azure","autorest/date","autorest/to","autorest/validation"]
-  revision = "a2fdd780c9a50455cecd249b00bdc3eb73a78e31"
-  version = "v7.3.1"
+  revision = "8a25372bbfec739b8719a9e3987400d15ef9e179"
 
 [[projects]]
   name = "github.com/PuerkitoBio/purell"
@@ -50,10 +48,10 @@
   revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
 
 [[projects]]
+  branch = "master"
   name = "github.com/apache/thrift"
   packages = ["lib/go/thrift"]
-  revision = "b2a4d4ae21c789b689dd162deb819665567f481c"
-  version = "0.10.0"
+  revision = "0ad20bdbfe9abcbb0cc5332ff95651b5c975da91"
 
 [[projects]]
   branch = "master"
@@ -64,8 +62,8 @@
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/ec2query","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/xml/xmlutil","service/ec2","service/sts"]
-  revision = "760741802ad40f49ae9fc4a69ef6706d2527d62e"
-  version = "v1.12.7"
+  revision = "21a783c1e3d759f7f0c0a6cdbd4acd56081a5cbb"
+  version = "v1.12.13"
 
 [[projects]]
   branch = "master"
@@ -148,8 +146,8 @@
 [[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
-  revision = "20b96f641a5ea98f2f8619ff4f3e061cff4833bd"
-  version = "v1.28.2"
+  revision = "5b3e00af70a9484542169a976dcab8d03e601a17"
+  version = "v1.30.0"
 
 [[projects]]
   name = "github.com/go-logfmt/logfmt"
@@ -232,8 +230,8 @@
 [[projects]]
   name = "github.com/hashicorp/consul"
   packages = ["api"]
-  revision = "112c0603d3d6fb23ab5f15e8fdb1a761da8eaf9a"
-  version = "v0.9.3"
+  revision = "51ea240df8476e02215d53fbfad5838bf0d44d21"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -280,7 +278,7 @@
   branch = "master"
   name = "github.com/mailru/easyjson"
   packages = ["buffer","jlexer","jwriter"]
-  revision = "2a92e673c9a6302dd05c3a691ae1f24aef46457d"
+  revision = "3fd5e860b68f3cc81671ece2e226c78a6bbf54d3"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -310,7 +308,7 @@
   branch = "master"
   name = "github.com/miekg/dns"
   packages = [".","internal/socket"]
-  revision = "946bd9fbed05568b0f3cd188353d8aa28f38b688"
+  revision = "822ae18e7187e1bbde923a37081f6c1b8e9ba68a"
 
 [[projects]]
   branch = "master"
@@ -326,6 +324,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/opentracing-contrib/go-observer"
+  packages = ["."]
+  revision = "a52f2342449246d5bcc273e65cbdcfa5f7d6c63c"
+
+[[projects]]
+  branch = "master"
   name = "github.com/opentracing-contrib/go-stdlib"
   packages = ["nethttp"]
   revision = "48e4d763b2fbcd10e666e6a1742acdf8cc2286ef"
@@ -338,9 +342,9 @@
 
 [[projects]]
   name = "github.com/openzipkin/zipkin-go-opentracing"
-  packages = [".","_thrift/gen-go/scribe","_thrift/gen-go/zipkincore","flag","types","wire"]
-  revision = "d88c90182f3fb514be54a1c7adc11a04d41c7da9"
-  version = "v0.2.4"
+  packages = [".","flag","thrift/gen-go/scribe","thrift/gen-go/zipkincore","types","wire"]
+  revision = "9c88fa03bfdfaa5fec7cd1b40f3d10ec15c15fc6"
+  version = "v0.3.1"
 
 [[projects]]
   name = "github.com/pborman/uuid"
@@ -388,7 +392,7 @@
   branch = "master"
   name = "github.com/prometheus/procfs"
   packages = [".","xfs"]
-  revision = "e645f4e5aaa8506fc71d6edbc5c4ff02c04c46f2"
+  revision = "a6e9df898b1336106c743392c48ee0b71f5c4efa"
 
 [[projects]]
   branch = "scrape-callback"
@@ -454,7 +458,7 @@
   branch = "master"
   name = "github.com/weaveworks/common"
   packages = ["errors","httpgrpc","httpgrpc/server","logging","mflag","mflagext","middleware","server","signals","user"]
-  revision = "15746cbb5831e70c58d520634b09393b7c3cfd56"
+  revision = "7ff1d9c4302486991e127e1168729e5603112b7b"
 
 [[projects]]
   name = "github.com/weaveworks/promrus"
@@ -478,13 +482,13 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+  revision = "959b3afb35f6a769732990dceca09da087ee47f5"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
-  revision = "a04bdaca5b32abe1c069418fb7088ae607de5bd0"
+  revision = "1087133bc4af3073e18add999345c6ae75918503"
 
 [[projects]]
   branch = "master"
@@ -496,25 +500,25 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows","windows/registry","windows/svc/eventlog"]
-  revision = "ebfc5b4631820b793c9010c87fd8fef0f39eb082"
+  revision = "8dbc5d05d6edcc104950cc299a1ce6641235bc86"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
   packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable","width"]
-  revision = "825fc78a2fd6fa0a5447e300189e3219e05e1f25"
+  revision = "c01e4764d870b77f8abe5096ee19ad20d80e8075"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
   packages = ["cover"]
-  revision = "0b88a3aa0751a3accc5cadec90e6c9bc88e8219e"
+  revision = "9bd2f442688b66c5289262d70f537c2ecf81d7de"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/api"
   packages = ["compute/v1","gensupport","googleapi","googleapi/internal/uritemplates"]
-  revision = "0aaeb37e5bf8ee5d75973b162ffd0f9f6cfdd91d"
+  revision = "15b905a38723467e1c9cea66cc58ab8ee5ddbfd8"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -530,9 +534,9 @@
 
 [[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","stats","status","tap","transport"]
-  revision = "f92cdcd7dcdc69e81b2d7b338479a19a8723cfa3"
-  version = "v1.6.0"
+  packages = [".","balancer","codes","connectivity","credentials","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","resolver","stats","status","tap","transport"]
+  revision = "f7bf885db0b7479a537ec317c6e48ce53145f3db"
+  version = "v1.7.0"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -567,6 +571,7 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "84cdfcfaf23115c67fcbf01f71a2e02882875f3be05d94e436a15283e1793a3d"
+  inputs-digest = "9fda4c2be5ad5cd9511381461afb05f7f658f4a82929da830a85d1d72352f1a8"
+  prune = false
   solver-name = "gps-cdcl"
   solver-version = 1

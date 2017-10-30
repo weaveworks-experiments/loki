@@ -2,6 +2,8 @@ package azure
 
 import (
 	"fmt"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/mocks"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -9,9 +11,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/mocks"
 )
 
 func TestGetAsyncOperation_ReturnsAzureAsyncOperationHeader(t *testing.T) {

@@ -13,3 +13,19 @@
   name = "github.com/prometheus/prometheus"
   source = "github.com/weaveworks-experiments/prometheus"
   branch = "scrape-callback"
+
+[[override]]
+  name = "github.com/Azure/azure-sdk-for-go"
+  revision = "bd73d950fa4440dae889bd9917bff7cef539f86e"
+
+[[override]]
+  name = "github.com/Azure/go-autorest"
+  revision = "8a25372bbfec739b8719a9e3987400d15ef9e179"
+
+[[override]]
+  name = "github.com/ugorji/go"
+  revision = "708a42d246822952f38190a8d8c4e6b16a0e600c"
+
+[[override]]
+  name = "github.com/apache/thrift"
+  branch = "master"

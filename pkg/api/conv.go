@@ -8,7 +8,7 @@ import (
 	"net"
 	_ "unsafe" // For math.Float64frombits
 
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/openzipkin/zipkin-go-opentracing/thrift/gen-go/zipkincore"
 
 	"github.com/weaveworks-experiments/loki/pkg/storage"
 )

@@ -2,9 +2,7 @@ package autorest
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strings"
@@ -20,7 +18,6 @@ func ExampleWithErrorUnlessOK() {
 	// Respond and leave the response body open (for a subsequent responder to close)
 	err := Respond(r,
 		WithErrorUnlessOK(),
-		ByDiscardingBody(),
 		ByClosingIfError())
 
 	if err == nil {
@@ -28,7 +25,6 @@ func ExampleWithErrorUnlessOK() {
 
 		// Complete handling the response and close the body
 		Respond(r,
-			ByDiscardingBody(),
 			ByClosing())
 	}
 	// Output: GET of https://microsoft.com/a/b/c/ returned HTTP 200
@@ -331,63 +327,6 @@ func TestByClosingIfErrorDoesNotClosesIfNoErrorOccurs(t *testing.T) {
 	}
 }
 
-func TestByDiscardingBody(t *testing.T) {
-	r := mocks.NewResponse()
-	err := Respond(r,
-		ByDiscardingBody())
-	if err != nil {
-		t.Fatalf("autorest: ByDiscardingBody failed (%v)", err)
-	}
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		t.Fatalf("autorest: Reading result of ByDiscardingBody failed (%v)", err)
-	}
-
-	if len(buf) != 0 {
-		t.Logf("autorest: Body was not empty after calling ByDiscardingBody.")
-		t.Fail()
-	}
-}
-
-func TestByDiscardingBodyAcceptsNilResponse(t *testing.T) {
-	var e error
-
-	r := mocks.NewResponse()
-
-	Respond(r,
-		withErrorRespondDecorator(&e),
-		(func() RespondDecorator {
-			return func(r Responder) Responder {
-				return ResponderFunc(func(resp *http.Response) error {
-					resp.Body.Close()
-					r.Respond(nil)
-					return nil
-				})
-			}
-		})(),
-		ByDiscardingBody())
-}
-
-func TestByDiscardingBodyAcceptsNilBody(t *testing.T) {
-	var e error
-
-	r := mocks.NewResponse()
-
-	Respond(r,
-		withErrorRespondDecorator(&e),
-		(func() RespondDecorator {
-			return func(r Responder) Responder {
-				return ResponderFunc(func(resp *http.Response) error {
-					resp.Body.Close()
-					resp.Body = nil
-					r.Respond(resp)
-					return nil
-				})
-			}
-		})(),
-		ByDiscardingBody())
-}
-
 func TestByUnmarshallingJSON(t *testing.T) {
 	v := &mocks.T{}
 	r := mocks.NewResponseWithContent(jsonT)
@@ -481,61 +420,6 @@ func TestRespondAcceptsNullResponse(t *testing.T) {
 	err := Respond(nil)
 	if err != nil {
 		t.Fatalf("autorest: Respond returned an unexpected error when given a null Response (%v)", err)
-	}
-}
-
-func TestWithErrorUnlessStatusCodeOKResponse(t *testing.T) {
-	v := &mocks.T{}
-	r := mocks.NewResponseWithContent(jsonT)
-	err := Respond(r,
-		WithErrorUnlessStatusCode(http.StatusOK),
-		ByUnmarshallingJSON(v),
-		ByClosing())
-
-	if err != nil {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK) failed on okay response. (%v)", err)
-	}
-
-	if v.Name != "Rob Pike" || v.Age != 42 {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK) corrupted the response body of okay response.")
-	}
-}
-
-func TesWithErrorUnlessStatusCodeErrorResponse(t *testing.T) {
-	v := &mocks.T{}
-	e := &mocks.T{}
-	r := mocks.NewResponseWithContent(jsonT)
-	r.Status = "400 BadRequest"
-	r.StatusCode = http.StatusBadRequest
-
-	err := Respond(r,
-		WithErrorUnlessStatusCode(http.StatusOK),
-		ByUnmarshallingJSON(v),
-		ByClosing())
-
-	if err == nil {
-		t.Fatal("autorest: WithErrorUnlessStatusCode(http.StatusOK) did not return error, on a response to a bad request.")
-	}
-
-	var errorRespBody []byte
-	if derr, ok := err.(DetailedError); !ok {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK) got wrong error type : %T, expected: DetailedError, on a response to a bad request.", err)
-	} else {
-		errorRespBody = derr.ServiceError
-	}
-
-	if errorRespBody == nil {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK) ServiceError not returned in DetailedError on a response to a bad request.")
-	}
-
-	err = json.Unmarshal(errorRespBody, e)
-	if err != nil {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK) cannot parse error returned in ServiceError into json. %v", err)
-	}
-
-	expected := &mocks.T{Name: "Rob Pike", Age: 42}
-	if e != expected {
-		t.Fatalf("autorest: WithErrorUnlessStatusCode(http.StatusOK wrong value from parsed ServiceError: got=%#v expected=%#v", e, expected)
 	}
 }
 

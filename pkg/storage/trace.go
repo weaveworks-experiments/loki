@@ -3,7 +3,7 @@ package storage
 import (
 	"sort"
 
-	"github.com/openzipkin/zipkin-go-opentracing/_thrift/gen-go/zipkincore"
+	"github.com/openzipkin/zipkin-go-opentracing/thrift/gen-go/zipkincore"
 	log "github.com/sirupsen/logrus"
 )
 
